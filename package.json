@@ -1,0 +1,46 @@
+{
+  "name": "kubycat",
+  "version": "1.0.0",
+  "description": "A small library for the watching and automated syncing of files into a local or remote Kubernetes cluster..",
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run clean && tsc -d",
+    "clean": "rimraf dist",
+    "lint": "tslint -c tslint.json",
+    "test": "ava"
+  },
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": "14 || 16 || 17 || 18 || 19"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sheldonjuncker/node-kubycat.git"
+  },
+  "keywords": [
+    "kubycat",
+    "kubernetes",
+    "file",
+    "syncing"
+  ],
+  "author": "Sheldon Juncker",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sheldonjuncker/node-kubycat/issues"
+  },
+  "homepage": "https://github.com/sheldonjuncker/node-kubycat",
+  "devDependencies": {
+    "ava": "^4.2.0",
+    "rimraf": "^3.0.2",
+    "tslint": "^6.1.3",
+    "typescript": "^4.6.4"
+  },
+  "dependencies": {
+
+  }
+}
