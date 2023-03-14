@@ -1,0 +1,19 @@
+kubycat:
+  context: minikube
+  namespace: default
+  sync:
+    - name: api
+      enabled: true
+      base: /Users/sheld/elsewhere/backend/api
+      from:
+        - src
+        - config
+      to: /srv/api
+      excluding:
+        - .+~$
+      including:
+        - .+\.php$
+      pod-label: tier=php
+      shell: /bin/sh
+      notify: true
+      on-error: ignore
