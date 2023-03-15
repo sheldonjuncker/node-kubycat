@@ -86,6 +86,7 @@ class KubycatConfig {
             s.onError = sync['on-error'] || 'exit';
             s.postLocal = sync['post-local'] || null;
             s.postRemote = sync['post-remote'] || null;
+            s.showLogs = sync['show-logs'] || true;
             syncs.push(s);
         }
         return new KubycatConfig(config.kubycat.config, config.kubycat.context, config.kubycat.namespace, syncs);

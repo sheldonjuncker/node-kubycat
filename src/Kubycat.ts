@@ -80,8 +80,7 @@ class Kubycat {
     }
 
     public async handleSync(file: string): Promise<void> {
-        console.log(chalk.blue(`sync\t${file}`));
-        let excluded = false;
+        let excludedSync;
         const sync = this.config.syncs.find(s => {
             if (!s.enabled) {
                 return false;
@@ -101,26 +100,26 @@ class Kubycat {
 
             //Must not be in the excluding regexes
             if (s.excluding.some(e => file.match(e))) {
-                excluded = true;
+                excludedSync = s;
                 //Unless it is in the including regexes
                 if (!s.including.some(i => file.match(i))) {
                     return false;
                 } else {
-                    excluded = false;
+                    excludedSync = null;
                 }
             }
             return true;
         });
 
         if (!sync) {
-            if (excluded) {
-                console.log(chalk.yellow(` - excluded`));
-            } else {
-                console.log(chalk.yellow(` - sync=none`));
+            if (excludedSync) {
+                this.log(excludedSync, chalk.blue(`sync\t${file}`));
+                this.log(excludedSync, chalk.yellow(` - excluded`));
             }
             return;
         } else {
-            console.log(` - sync=${sync.name}`);
+            this.log(sync, chalk.blue(`sync\t${file}`));
+            this.log(sync, chalk.green(` - sync=${sync.name}`));
         }
 
         return await this.runSync(sync, file);
@@ -192,7 +191,7 @@ class Kubycat {
 
     private async runSync(sync: KubycatSync, file: string) {
         const status = this.getFileStatus(file);
-        console.log(` - status=${status}`);
+        this.log(sync, ` - status=${status}`);
         if (status === FileStatus.Unchanged) {
             return;
         }
@@ -237,13 +236,13 @@ class Kubycat {
             if (remote) {
                 //Runs a command on all the pods
                 const pods = await this.getKubernetesPods(sync);
-                console.log(` - running on all ${pods.length} pods`);
+                this.log(sync, ` - running on all ${pods.length} pods`);
                 for (const pod of pods) {
                     const remoteCommand = command.replace(/\$POD/g, pod);
                     status = await this.runCommand(sync, remoteCommand, file, false, true);
                 }
             } else {
-                console.log(` - ${command}`);
+                this.log(sync, ` - ${command}`);
                 //Runs the command locally
                 const child = spawn(command, {
                     shell: true,
@@ -288,7 +287,7 @@ class Kubycat {
         }
 
         if (!subCommand && status.code == 0) {
-            console.log(chalk.green(` - success`));
+            this.log(sync, chalk.green(` - success`));
         }
 
         return status;
@@ -329,15 +328,15 @@ class Kubycat {
     }
 
     private async handleError(sync: KubycatSync, commandStatus: CommandStatus): Promise<void> {
-        console.log(chalk.red(` - error:`));
-        console.log(' ---------------------------------------');
+        this.log(sync, chalk.red(` - error:`));
+        this.log(sync, ' ---------------------------------------');
         for (const line of commandStatus.stdout) {
-            console.log(' - ' + line);
+            this.log(sync, ' - ' + line);
         }
         for (const line of commandStatus.stderr) {
-            console.error(' - ' + line);
+            this.log(sync, ' - ' + line);
         }
-        console.log(' ---------------------------------------');
+        this.log(sync, ' ---------------------------------------');
 
         if (sync.notify) {
             //send desktop notification
@@ -353,14 +352,22 @@ class Kubycat {
             case 'ignore':
                 return;
             case 'reload':
-                console.log(' - reloading (service-mode only)...');
+                this.log(sync, ' - reloading (service-mode only)...');
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 exit(0);
             case 'exit':
-            default:
-                console.log(' - exiting with code ' + commandStatus.code + '...');
+                this.log(sync, ' - exiting with code ' + commandStatus.code + '...');
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 exit(commandStatus.code);
+            case 'throw':
+            default:
+                throw commandStatus;
+        }
+    }
+
+    private log(sync: KubycatSync, message: any) {
+        if (sync.showLogs) {
+            console.log(message);
         }
     }
 }

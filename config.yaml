@@ -18,3 +18,4 @@ kubycat:
       shell: /bin/sh
       notify: true
       on-error: exit
+      show-logs: true

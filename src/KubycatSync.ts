@@ -20,6 +20,7 @@ class KubycatSync {
     private _onError: string|null = null;
     private _postLocal: string|null = null;
     private _postRemote: string|null = null;
+    private _showLogs: boolean = true;
 
     constructor(name: string, base: string, from: string[] = [], to: string|null = null) {
         this._name = name;
@@ -28,6 +29,13 @@ class KubycatSync {
         this._to = to;
     }
 
+    get showLogs(): boolean {
+        return this._showLogs;
+    }
+
+    set showLogs(value: boolean) {
+        this._showLogs = value;
+    }
 
     get pods(): string[]|null {
         return this._pods;
