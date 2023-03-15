@@ -1,13 +1,6 @@
 import * as path from "path";
 
 class KubycatSync {
-    get enabled(): boolean {
-        return this._enabled;
-    }
-
-    set enabled(value: boolean) {
-        this._enabled = value;
-    }
     private _name: string;
     private _enabled: boolean = true;
     private _base: string;
@@ -20,6 +13,8 @@ class KubycatSync {
     private _including: string[] = [];
     private _pod: string|null = null;
     private _podLabel: string|null = null;
+    private _cachePods: boolean = true;
+    private _pods: string[]|null = null;
     private _shell: string|null = null;
     private _notify: boolean = false;
     private _onError: string|null = null;
@@ -33,6 +28,29 @@ class KubycatSync {
         this._to = to;
     }
 
+
+    get pods(): string[]|null {
+        return this._pods;
+    }
+
+    set pods(value: string[]|null) {
+        this._pods = value;
+    }
+
+    get cachePods(): boolean {
+        return this._cachePods;
+    }
+
+    set cachePods(value: boolean) {
+        this._cachePods = value;
+    }
+    get enabled(): boolean {
+        return this._enabled;
+    }
+
+    set enabled(value: boolean) {
+        this._enabled = value;
+    }
 
     get name(): string {
         return this._name;

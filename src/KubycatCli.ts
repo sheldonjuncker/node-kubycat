@@ -38,7 +38,7 @@ class KubycatCli {
         console.log('');
         console.log('Watching files...');
         console.log('Press Ctrl+C to exit.\n');
-        kubycat.watchFiles();
+        kubycat.start(250);
     }
 }
 

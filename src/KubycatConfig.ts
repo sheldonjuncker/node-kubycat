@@ -80,6 +80,7 @@ class KubycatConfig {
             s.excluding = sync.excluding || []
             s.pod = sync.pod || null;
             s.podLabel = sync['pod-label'] || null;
+            s.cachePods = sync['cache-pods'] || true;
             s.shell = sync.shell || null;
             s.notify = sync.notify || false;
             s.onError = sync['on-error'] || 'exit';

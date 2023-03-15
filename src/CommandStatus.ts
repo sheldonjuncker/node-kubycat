@@ -19,7 +19,7 @@ class CommandStatus {
     }
 
     get stdout(): string[] {
-        return this._stdout;
+        return this._stdout.map(line => line.trim()).filter(line => line.length > 0);
     }
 
     set stdout(value: string[]) {
@@ -27,7 +27,7 @@ class CommandStatus {
     }
 
     get stderr(): string[] {
-        return this._stderr;
+        return this._stderr.map(line => line.trim()).filter(line => line.length > 0);
     }
 
     set stderr(value: string[]) {

@@ -7,11 +7,16 @@ import FileStatus from "./FileStatus.js";
 import CommandStatus from "./CommandStatus.js";
 import {exit} from 'node:process';
 import notifier from 'node-notifier';
+import chalk from 'chalk';
 
 
 class Kubycat {
     private _config: KubycatConfig;
     private _fileCache: { [key: string]: string } = {};
+    private _syncQueue: string[] = [];
+    private _syncing: boolean = false;
+    private _fileWatchers: fs.FSWatcher[] = [];
+
     constructor(config: KubycatConfig) {
         config.validate();
         this._config = config;
@@ -25,25 +30,58 @@ class Kubycat {
         this._config = value;
     }
 
-    watchFiles() {
+    public watchFiles() {
         for (const sync of this.config.syncs) {
             if (!sync.enabled) {
                 continue;
             }
 
             for (const from of sync.from) {
-                fs.watch(sync.base + '/' + from, { recursive: true }, async (event, file) => {
-                    console.log('sync\t' + event + '\t' + file);
+                const watcher = fs.watch(sync.base + '/' + from, { recursive: true }, async (_event, file) => {
                     if (file) {
                         file = file.replace(/\\/g, '/');
-                        await this.handleSync(sync.base + '/' + from + '/' + file);
+                        const absolutePath = sync.base + '/' + from + '/' + file;
+                        this._syncQueue.push(absolutePath);
                     }
                 });
+                this._fileWatchers.push(watcher);
             }
         }
     }
 
-    async handleSync(file: string): Promise<void> {
+    public unwatchFiles() {
+        for (const watcher of this._fileWatchers) {
+            watcher.close();
+        }
+        this._fileWatchers = [];
+    }
+
+    public async startQueue(interval: number = 1000) {
+        this._syncing = true;
+        await this.processQueue(interval);
+    }
+
+    public stopQueue() {
+        this._syncing = false;
+    }
+
+    public async start(interval: number = 1000) {
+        this.watchFiles();
+        return await this.startQueue(interval);
+    }
+
+    public stop() {
+        this.unwatchFiles();
+        this.stopQueue();
+    }
+
+    public addToQueue(file: string) {
+        this._syncQueue.push(file);
+    }
+
+    public async handleSync(file: string): Promise<void> {
+        console.log(chalk.blue(`sync\t${file}`));
+        let excluded = false;
         const sync = this.config.syncs.find(s => {
             if (!s.enabled) {
                 return false;
@@ -63,22 +101,57 @@ class Kubycat {
 
             //Must not be in the excluding regexes
             if (s.excluding.some(e => file.match(e))) {
+                excluded = true;
                 //Unless it is in the including regexes
                 if (!s.including.some(i => file.match(i))) {
                     return false;
+                } else {
+                    excluded = false;
                 }
             }
             return true;
         });
 
         if (!sync) {
-            console.warn(` - sync=none`);
+            if (excluded) {
+                console.log(chalk.yellow(` - excluded`));
+            } else {
+                console.log(chalk.yellow(` - sync=none`));
+            }
             return;
         } else {
             console.log(` - sync=${sync.name}`);
         }
 
-        await this.runSync(sync, file);
+        return await this.runSync(sync, file);
+    }
+
+    private async processQueue(interval: number = 1000) {
+        if (!this._syncing) {
+            return;
+        }
+
+        //get the current time in milliseconds
+        const now = new Date().getTime();
+
+        if (this._syncQueue.length > 0) {
+            const file = this._syncQueue.shift();
+            if (file) {
+                await this.handleSync(file);
+            }
+        }
+
+        //get the current time in milliseconds
+        const end = new Date().getTime();
+
+        //wait up to interval milliseconds before returning a promise that runs the function again
+        const timeout = Math.max(0, interval - (end - now));
+
+        return new Promise(resolve => {
+            setTimeout(async () => {
+                resolve(this.processQueue(interval));
+            }, timeout);
+        });
     }
 
     private getFileHash(file: string): string {
@@ -158,75 +231,67 @@ class Kubycat {
         await this.runCommand(sync, command, file, true);
     }
 
-    private async runCommand(sync: KubycatSync, command: string, file: string, remote: boolean): Promise<CommandStatus> {
-        if (remote) {
-            console.log(` - remote=${command}`);
-            //Runs a command on all the pods
-            const status = new CommandStatus(0, [], []);
-            const pods = await this.getKubernetesPods(sync);
-            console.log(` - running on all ${pods.length} pods`);
-            for (const pod of pods) {
-                const remoteCommand = command.replace(/\$POD/g, pod);
-                const commandStatus = await this.runCommand(sync, remoteCommand, file, false);
-                status.code += commandStatus.code;
-                for (const line of commandStatus.stdout) {
-                    status.stdout.push(line);
+    private async runCommand(sync: KubycatSync, command: string, file: string, remote: boolean = false, subCommand: boolean = false): Promise<CommandStatus> {
+        let status: CommandStatus = new CommandStatus(0);
+        try {
+            if (remote) {
+                //Runs a command on all the pods
+                const pods = await this.getKubernetesPods(sync);
+                console.log(` - running on all ${pods.length} pods`);
+                for (const pod of pods) {
+                    const remoteCommand = command.replace(/\$POD/g, pod);
+                    status = await this.runCommand(sync, remoteCommand, file, false, true);
                 }
-                for (const line of commandStatus.stderr) {
-                    status.stderr.push(line);
-                }
-            }
-            console.log(` - finished with code ${status.code}`);
-            if (status.code !== 0) {
-                await this.handleError(sync, status);
             } else {
-                console.log(` - success`);
-            }
-            return status;
-        } else {
-            console.log(` - local=${command}`);
-            //Runs the command locally
-            const child = spawn(command, {
-                shell: true,
-                stdio: 'pipe',
-                env: {
-                    ...process.env,
-                }
-            });
-            const status = await  new Promise<CommandStatus>((resolve) => {
-                let output: string[] = [];
-                let error: string[] = [];
-
-                child.stdout.setEncoding('utf8');
-                child.stdout.on('data', (data) => {
-                    output.push(data.toString());
-                });
-
-                child.stderr.setEncoding('utf8');
-                child.stderr.on('data', (data) => {
-                    error.push(data.toString());
-                });
-
-                child.on('exit', (code) => {
-                    //remove empty lines
-                    output = output.filter(l => l.trim().length > 0);
-                    error = error.filter(l => l.trim().length > 0);
-
-                    if (code === 0) {
-                        resolve(new CommandStatus(code, output, error));
-                    } else {
-                        resolve(new CommandStatus(code || 1, output, error));
+                console.log(` - ${command}`);
+                //Runs the command locally
+                const child = spawn(command, {
+                    shell: true,
+                    stdio: 'pipe',
+                    env: {
+                        ...process.env,
                     }
                 });
-            });
-            console.log(` - finished with code ${status.code}`);
-            if (status.code !== 0) {
-                await this.handleError(sync, status);
-            } else {
-                console.log(` - success`);
+                status = await  new Promise<CommandStatus>((resolve) => {
+                    let output: string[] = [];
+                    let error: string[] = [];
+
+                    child.stdout.setEncoding('utf8');
+                    child.stdout.on('data', (data) => {
+                        output.push(data.toString());
+                    });
+
+                    child.stderr.setEncoding('utf8');
+                    child.stderr.on('data', (data) => {
+                        error.push(data.toString());
+                    });
+
+                    child.on('exit', (code) => {
+                        if (code === 0) {
+                            resolve(new CommandStatus(code, output, error));
+                        } else {
+                            resolve(new CommandStatus(code || 1, output, error));
+                        }
+                    });
+                });
+                if (status.code !== 0) {
+                    throw status;
+                }
             }
-            return status;
+        } catch (e) {
+            status = e;
+            if (subCommand) {
+                throw status;
+            } else {
+                await this.handleError(sync, status);
+            }
         }
+
+        if (!subCommand && status.code == 0) {
+            console.log(chalk.green(` - success`));
+        }
+
+        return status;
     }
 
     private getKubernetesBaseCommand(sync: KubycatSync): string[] {
@@ -245,24 +310,26 @@ class Kubycat {
     }
 
     private async getKubernetesPods(sync: KubycatSync): Promise<string[]> {
+        if (sync.podLabel && sync.cachePods && sync.pods !== null) {
+            return sync.pods;
+        }
+
         const baseCommand = this.getKubernetesBaseCommand(sync);
         if (sync.pod) {
             return [sync.pod];
         } else {
             const command = [...baseCommand, 'get', 'pods', '-l', sync.podLabel, '-o', 'custom-columns=NAME:metadata.name', '--no-headers'];
-            const commandStatus = await this.runCommand(sync, command.join(' '), '', false);
-            if (commandStatus.code === 0) {
-                //remove empty lines
-                const lines = commandStatus.stdout.filter(l => l.trim().length > 0);
-                return lines.map(l => l.trim());
-            } else {
-                return [];
+            const commandStatus = await this.runCommand(sync, command.join(' '), '', false, true);
+            const pods = commandStatus.stdout;
+            if (sync.podLabel && sync.cachePods) {
+                sync.pods = pods;
             }
+            return pods;
         }
     }
 
     private async handleError(sync: KubycatSync, commandStatus: CommandStatus): Promise<void> {
-        console.log(` - error:`);
+        console.log(chalk.red(` - error:`));
         console.log(' ---------------------------------------');
         for (const line of commandStatus.stdout) {
             console.log(' - ' + line);
@@ -281,16 +348,19 @@ class Kubycat {
             });
         }
 
-        if (sync.onError) {
-            switch (sync.onError) {
-                case 'ignore':
-                    return;
-                case 'reload':
-                    exit(0);
-                case 'exit':
-                default:
-                    exit(commandStatus.code);
-            }
+        //if we are exiting, wait a second to allow the notification to be seen
+        switch (sync.onError) {
+            case 'ignore':
+                return;
+            case 'reload':
+                console.log(' - reloading (service-mode only)...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                exit(0);
+            case 'exit':
+            default:
+                console.log(' - exiting with code ' + commandStatus.code + '...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                exit(commandStatus.code);
         }
     }
 }
