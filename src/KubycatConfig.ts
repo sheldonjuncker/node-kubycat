@@ -72,7 +72,7 @@ class KubycatConfig {
             console.log(sync);
             const s = new KubycatSync(sync.name, sync.base, sync.from, sync.to);
             s.name = sync.name;
-            s.enabled = sync.enabled || true;
+            s.enabled = sync.enabled ?? true;
             s.namespace = sync.namespace || config.kubycat.namespace;
             s.context = sync.context || null;
             s.config = sync.config || null;
@@ -80,13 +80,13 @@ class KubycatConfig {
             s.excluding = sync.excluding || []
             s.pod = sync.pod || null;
             s.podLabel = sync['pod-label'] || null;
-            s.cachePods = sync['cache-pods'] || true;
+            s.cachePods = sync['cache-pods'] ?? true;
             s.shell = sync.shell || null;
-            s.notify = sync.notify || false;
+            s.notify = sync.notify ?? false;
             s.onError = sync['on-error'] || 'exit';
             s.postLocal = sync['post-local'] || null;
             s.postRemote = sync['post-remote'] || null;
-            s.showLogs = sync['show-logs'] || true;
+            s.showLogs = sync['show-logs'] ?? true;
             syncs.push(s);
         }
         return new KubycatConfig(config.kubycat.config, config.kubycat.context, config.kubycat.namespace, syncs);
