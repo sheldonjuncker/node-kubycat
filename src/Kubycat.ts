@@ -2,10 +2,10 @@ import KubycatConfig from "./KubycatConfig.js";
 import KubycatSync from "./KubycatSync.js";
 import fs from 'fs';
 import crypto from 'crypto';
-import { spawn } from 'child_process';
+import {spawn} from 'child_process';
 import FileStatus from "./FileStatus.js";
 import CommandStatus from "./CommandStatus.js";
-import { exit } from 'node:process';
+import {exit} from 'node:process';
 import notifier from 'node-notifier';
 
 
@@ -237,7 +237,9 @@ class Kubycat {
             const command = [...baseCommand, 'get', 'pods', '-l', sync.podLabel, '-o', 'custom-columns=NAME:metadata.name', '--no-headers'];
             const commandStatus = await this.runCommand(sync, command.join(' '), '', false);
             if (commandStatus.code === 0) {
-                return commandStatus.stdout;
+                //remove empty lines
+                const lines = commandStatus.stdout.filter(l => l.trim().length > 0);
+                return lines.map(l => l.trim());
             } else {
                 return [];
             }

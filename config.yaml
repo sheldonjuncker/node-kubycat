@@ -1,6 +1,6 @@
 kubycat:
   context: minikube
-  namespace: default
+  namespace: elsewhere
   sync:
     - name: api
       enabled: true
