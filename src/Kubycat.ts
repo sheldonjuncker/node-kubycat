@@ -35,6 +35,7 @@ class Kubycat {
                 fs.watch(sync.base + '/' + from, { recursive: true }, async (event, file) => {
                     console.log('sync\t' + event + '\t' + file);
                     if (file) {
+                        file = file.replace(/\\/g, '/');
                         await this.handleSync(sync.base + '/' + from + '/' + file);
                     }
                 });
@@ -83,12 +84,12 @@ class Kubycat {
     private getFileHash(file: string): string {
         try {
             const stat = fs.statSync(file);
-            const hash = stat.ctime.toString();
             if (!stat.isDirectory()) {
                 const contents = fs.readFileSync(file);
-                return hash + ':' + crypto.createHash('md5').update(contents).digest('hex');
+                return stat.ctime.toString() + ':' + crypto.createHash('md5').update(contents).digest('hex');
+            } else {
+                return FileStatus.Directory_Modified;
             }
-            return hash;
         } catch (e) {
             return FileStatus.Deleted;
         }
@@ -99,9 +100,18 @@ class Kubycat {
         if (this._fileCache[file] === hash) {
             return FileStatus.Unchanged;
         }
+        const oldHash = this._fileCache[file];
         this._fileCache[file] = hash;
         if (hash === FileStatus.Deleted) {
             return FileStatus.Deleted;
+        } else if(hash === FileStatus.Directory_Modified) {
+            if (!oldHash || oldHash === FileStatus.Deleted) {
+                //only sync if the directory is new or was previously deleted
+                return FileStatus.Directory_Modified;
+            } else {
+                return FileStatus.Unchanged;
+            }
+
         } else {
             return FileStatus.Modified;
         }
@@ -117,7 +127,7 @@ class Kubycat {
         if (status === FileStatus.Deleted) {
             await this.deleteFile(sync, file);
         } else {
-            await this.updateFile(sync, file);
+            await this.updateFile(sync, file, status === FileStatus.Directory_Modified);
         }
 
         if (sync.postLocal) {
@@ -131,14 +141,19 @@ class Kubycat {
 
     private async deleteFile(sync: KubycatSync, file: string) {
         const base = this.getKubernetesBaseCommand(sync);
-        const command = base + ' exec $POD -- ' + sync.shell + ' -c "rm -Rf ' + file + '"';
+        const relativePath = file.substring(sync.base.length + 1);
+        const command = base.join(' ') + ' exec $POD -- ' + sync.shell + ' -c "rm -Rf ' + sync.to + '/' + relativePath + '"';
         await this.runCommand(sync, command, file, true);
     }
 
-    private async updateFile(sync: KubycatSync, file: string) {
+    private async updateFile(sync: KubycatSync, file: string, directory: boolean) {
         const base = this.getKubernetesBaseCommand(sync);
         const namespace = sync.namespace;
-        const relativePath = file.substring(sync.base.length + 1);
+        let relativePath = file.substring(sync.base.length + 1);
+        if (directory) {
+            //we want sync to the parent directory so that this doesn't nest the directory
+            relativePath = relativePath.substring(0, relativePath.lastIndexOf('/'));
+        }
         const command = base.join(' ') + ' cp ' + file + ' ' + namespace + '/$POD:' + sync.to + '/' + relativePath;
         await this.runCommand(sync, command, file, true);
     }
