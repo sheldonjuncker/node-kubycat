@@ -1,11 +1,6 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const KubycatSync_js_1 = __importDefault(require("./KubycatSync.js"));
-const yaml_1 = __importDefault(require("yaml"));
-const fs_1 = __importDefault(require("fs"));
+import KubycatSync from "./KubycatSync.js";
+import YAML from 'yaml';
+import fs from 'fs';
 class KubycatConfig {
     constructor(config = null, context = null, namespace = null, syncs = []) {
         this._context = null;
@@ -50,17 +45,16 @@ class KubycatConfig {
         this._syncs = [];
     }
     static fromYaml(yaml) {
-        var _a, _b, _c, _d;
-        const config = yaml_1.default.parse(yaml);
+        const config = YAML.parse(yaml);
         if (!config.kubycat) {
             throw new Error('invalid config file, missing kubycat section.');
         }
         const syncs = [];
         for (const sync of config.kubycat.sync) {
             console.log(sync);
-            const s = new KubycatSync_js_1.default(sync.name, sync.base, sync.from, sync.to);
+            const s = new KubycatSync(sync.name, sync.base, sync.from, sync.to);
             s.name = sync.name;
-            s.enabled = (_a = sync.enabled) !== null && _a !== void 0 ? _a : true;
+            s.enabled = sync.enabled ?? true;
             s.namespace = sync.namespace || config.kubycat.namespace;
             s.context = sync.context || null;
             s.config = sync.config || null;
@@ -68,19 +62,19 @@ class KubycatConfig {
             s.excluding = sync.excluding || [];
             s.pod = sync.pod || null;
             s.podLabel = sync['pod-label'] || null;
-            s.cachePods = (_b = sync['cache-pods']) !== null && _b !== void 0 ? _b : true;
+            s.cachePods = sync['cache-pods'] ?? true;
             s.shell = sync.shell || null;
-            s.notify = (_c = sync.notify) !== null && _c !== void 0 ? _c : false;
+            s.notify = sync.notify ?? false;
             s.onError = sync['on-error'] || 'exit';
             s.postLocal = sync['post-local'] || null;
             s.postRemote = sync['post-remote'] || null;
-            s.showLogs = (_d = sync['show-logs']) !== null && _d !== void 0 ? _d : true;
+            s.showLogs = sync['show-logs'] ?? true;
             syncs.push(s);
         }
         return new KubycatConfig(config.kubycat.config, config.kubycat.context, config.kubycat.namespace, syncs);
     }
     static fromYamlFile(path) {
-        const yaml = fs_1.default.readFileSync(path, 'utf8');
+        const yaml = fs.readFileSync(path, 'utf8');
         return KubycatConfig.fromYaml(yaml);
     }
     validate() {
@@ -92,4 +86,4 @@ class KubycatConfig {
         }
     }
 }
-exports.default = KubycatConfig;
+export default KubycatConfig;

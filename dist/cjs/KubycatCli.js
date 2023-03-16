@@ -1,12 +1,7 @@
 #!/usr/bin/env node
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const KubycatConfig_js_1 = __importDefault(require("./KubycatConfig.js"));
-const Kubycat_js_1 = __importDefault(require("./Kubycat.js"));
-const fs_1 = __importDefault(require("fs"));
+import KubycatConfig from "./KubycatConfig.js";
+import Kubycat from "./Kubycat.js";
+import fs from 'fs';
 class KubycatCli {
     static main(args) {
         if (args.length < 1) {
@@ -19,13 +14,13 @@ class KubycatCli {
             return;
         }
         if (configFile == 'version') {
-            const info = JSON.parse(fs_1.default.readFileSync('package.json', 'utf8'));
+            const info = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             console.log('Kubycat version ' + info.version);
             return;
         }
         console.log('Reading from config file: ' + configFile + '...');
-        const config = KubycatConfig_js_1.default.fromYamlFile(configFile);
-        const kubycat = new Kubycat_js_1.default(config);
+        const config = KubycatConfig.fromYamlFile(configFile);
+        const kubycat = new Kubycat(config);
         console.log('Config file loaded successfully.\n');
         console.log('Watching for file changes recursively in the following paths:');
         for (const sync of config.syncs) {
