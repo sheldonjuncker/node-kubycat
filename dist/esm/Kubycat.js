@@ -14,7 +14,15 @@ import KubycatFileStatus from "./KubycatFileStatus.js";
 import KubycatCommandStatus from "./KubycatCommandStatus.js";
 import { exit } from 'node:process';
 import notifier from 'node-notifier';
-import chalk from 'chalk';
+let chalk = null;
+function importChalk() {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!chalk) {
+            chalk = (yield import("chalk")).default;
+        }
+        return chalk;
+    });
+}
 class Kubycat {
     constructor(config) {
         this._fileCache = {};
@@ -106,14 +114,18 @@ class Kubycat {
             });
             if (!sync) {
                 if (excludedSync) {
-                    this.log(excludedSync, chalk.blue(`sync\t${file}`));
-                    this.log(excludedSync, chalk.yellow(` - excluded`));
+                    //@ts-ignore
+                    this.log(excludedSync, (yield importChalk).blue(`sync\t${file}`));
+                    //@ts-ignore
+                    this.log(excludedSync, (yield importChalk).yellow(` - excluded`));
                 }
                 return;
             }
             else {
-                this.log(sync, chalk.blue(`sync\t${file}`));
-                this.log(sync, chalk.green(` - sync=${sync.name}`));
+                //@ts-ignore
+                this.log(sync, (yield importChalk).blue(`sync\t${file}`));
+                //@ts-ignore
+                this.log(sync, (yield importChalk).green(` - sync=${sync.name}`));
             }
             return yield this.runSync(sync, file);
         });
@@ -285,7 +297,8 @@ class Kubycat {
                 }
             }
             if (!subCommand && status.code == 0) {
-                this.log(sync, chalk.green(` - success`));
+                //@ts-ignore
+                this.log(sync, (yield importChalk).green(` - success`));
             }
             return status;
         });
@@ -325,7 +338,8 @@ class Kubycat {
     }
     handleError(sync, commandStatus) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.log(sync, chalk.red(` - error:`));
+            //@ts-ignore
+            this.log(sync, (yield importChalk).red(` - error:`));
             this.log(sync, ' ---------------------------------------');
             for (const line of commandStatus.stdout) {
                 this.log(sync, ' - ' + line);

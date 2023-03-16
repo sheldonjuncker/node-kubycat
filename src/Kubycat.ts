@@ -7,7 +7,14 @@ import KubycatFileStatus from "./KubycatFileStatus.js";
 import KubycatCommandStatus from "./KubycatCommandStatus.js";
 import {exit} from 'node:process';
 import notifier from 'node-notifier';
-import chalk from 'chalk';
+
+let chalk: any = null;
+async function importChalk() {
+    if (!chalk) {
+        chalk = (await import("chalk")).default;
+    }
+    return chalk;
+}
 
 
 class Kubycat {
@@ -113,13 +120,18 @@ class Kubycat {
 
         if (!sync) {
             if (excludedSync) {
-                this.log(excludedSync, chalk.blue(`sync\t${file}`));
-                this.log(excludedSync, chalk.yellow(` - excluded`));
+                //@ts-ignore
+                this.log(excludedSync, (await importChalk()).blue(`sync\t${file}`));
+
+                //@ts-ignore
+                this.log(excludedSync, (await importChalk()).yellow(` - excluded`));
             }
             return;
         } else {
-            this.log(sync, chalk.blue(`sync\t${file}`));
-            this.log(sync, chalk.green(` - sync=${sync.name}`));
+            //@ts-ignore
+            this.log(sync, (await importChalk()).blue(`sync\t${file}`));
+            //@ts-ignore
+            this.log(sync, (await importChalk()).green(` - sync=${sync.name}`));
         }
 
         return await this.runSync(sync, file);
@@ -295,7 +307,8 @@ class Kubycat {
         }
 
         if (!subCommand && status.code == 0) {
-            this.log(sync, chalk.green(` - success`));
+            //@ts-ignore
+            this.log(sync, (await importChalk()).green(` - success`));
         }
 
         return status;
@@ -336,7 +349,8 @@ class Kubycat {
     }
 
     private async handleError(sync: KubycatSync, commandStatus: KubycatCommandStatus): Promise<void> {
-        this.log(sync, chalk.red(` - error:`));
+        //@ts-ignore
+        this.log(sync, (await importChalk()).red(` - error:`));
         this.log(sync, ' ---------------------------------------');
         for (const line of commandStatus.stdout) {
             this.log(sync, ' - ' + line);

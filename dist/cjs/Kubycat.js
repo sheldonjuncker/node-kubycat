@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -19,7 +42,15 @@ const KubycatFileStatus_js_1 = __importDefault(require("./KubycatFileStatus.js")
 const KubycatCommandStatus_js_1 = __importDefault(require("./KubycatCommandStatus.js"));
 const node_process_1 = require("node:process");
 const node_notifier_1 = __importDefault(require("node-notifier"));
-const chalk_1 = __importDefault(require("chalk"));
+let chalk = null;
+function importChalk() {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!chalk) {
+            chalk = (yield Promise.resolve().then(() => __importStar(require("chalk")))).default;
+        }
+        return chalk;
+    });
+}
 class Kubycat {
     constructor(config) {
         this._fileCache = {};
@@ -111,14 +142,18 @@ class Kubycat {
             });
             if (!sync) {
                 if (excludedSync) {
-                    this.log(excludedSync, chalk_1.default.blue(`sync\t${file}`));
-                    this.log(excludedSync, chalk_1.default.yellow(` - excluded`));
+                    //@ts-ignore
+                    this.log(excludedSync, (yield importChalk).blue(`sync\t${file}`));
+                    //@ts-ignore
+                    this.log(excludedSync, (yield importChalk).yellow(` - excluded`));
                 }
                 return;
             }
             else {
-                this.log(sync, chalk_1.default.blue(`sync\t${file}`));
-                this.log(sync, chalk_1.default.green(` - sync=${sync.name}`));
+                //@ts-ignore
+                this.log(sync, (yield importChalk).blue(`sync\t${file}`));
+                //@ts-ignore
+                this.log(sync, (yield importChalk).green(` - sync=${sync.name}`));
             }
             return yield this.runSync(sync, file);
         });
@@ -290,7 +325,8 @@ class Kubycat {
                 }
             }
             if (!subCommand && status.code == 0) {
-                this.log(sync, chalk_1.default.green(` - success`));
+                //@ts-ignore
+                this.log(sync, (yield importChalk).green(` - success`));
             }
             return status;
         });
@@ -330,7 +366,8 @@ class Kubycat {
     }
     handleError(sync, commandStatus) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.log(sync, chalk_1.default.red(` - error:`));
+            //@ts-ignore
+            this.log(sync, (yield importChalk).red(` - error:`));
             this.log(sync, ' ---------------------------------------');
             for (const line of commandStatus.stdout) {
                 this.log(sync, ' - ' + line);
