@@ -26,6 +26,7 @@ const license = 'MIT'
     - [Version](#version)
     - [Help](#help)
 - [About](#about)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Overview

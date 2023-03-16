@@ -1,6 +1,6 @@
 {
   "name": "kubycat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A small library for the watching and automated syncing of files into a local or remote Kubernetes cluster..",
   "type": "module",
   "main": "dist/index.js",
