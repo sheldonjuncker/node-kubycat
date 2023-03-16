@@ -203,11 +203,18 @@ class Kubycat {
         }
 
         if (sync.postLocal) {
-            await this.runCommand(sync, sync.postLocal, file, false);
+            if (sync.postLocal == 'kubycat::exit') {
+                this.stop();
+                exit(0);
+            }
+
+            const localCommand = sync.postLocal.replace('${synced_file}', file);
+            await this.runCommand(sync, localCommand, file, false);
         }
 
         if (sync.postRemote) {
-            await this.runCommand(sync, sync.postRemote, file, true);
+            const remoteCommand = sync.postRemote.replace('${synced_file}', file);
+            await this.runCommand(sync, remoteCommand, file, true);
         }
     }
 

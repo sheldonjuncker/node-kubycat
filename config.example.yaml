@@ -1,0 +1,57 @@
+kubycat:
+  # The Kubernetes config file to use
+  config: /home/johndoe/.kube/config
+  # The Kubernetes context to use
+  context: minikube
+  # The Kubernetes namespace to use
+  # This can be specified or overridden for each individual sync
+  namespace: default
+  # Individual sync configs
+  sync:
+    # The name of the sync
+    - name: web-app
+      # Whether to enable this sync
+      enabled: true
+      # The base directory to sync from
+      base: /home/johndoe/test/
+      # Overridden Kubernetes options
+      config: /home/johndoe/.kube/do-sfo3-k8s-johndoe
+      context: do-sfo3-k8s-johndoe
+      namespace: other
+      # The file paths to sync
+      # Note that all syncing is done recursively
+      from:
+        - src
+        - config
+        - index.php
+      # The remote directory to sync into
+      to: /remote/server
+      # File pattern exclusions
+      excluding:
+        - .+~$
+      including:
+        - .+\.php$
+      # The Kubernetes pod to sync into
+      pod: pod-name
+      # The Kubernetes pod label to use for finding the pod(s) to sync into
+      # This can be used instead of specifying a single pod
+      pod-label: key=value
+      # Whether to cache the pods for this sync
+      cache-pods: true
+      # The shell command to run in the container for deleting files
+      shell: /bin/sh
+      # Allows Kubycat to send desktop notifications on errors
+      notify: true
+      # The action to take on sync errors
+      on-error: exit
+      # Whether to show the logs for the sync
+      show-logs: true
+    - name: composer
+      base: /home/johndoe/test/
+      namespace: other
+      from:
+        - composer.json
+      to: /remote/server
+      pod-label: key=value
+      shell: /bin/sh
+      post-remote: /bin/sh -c "composer install"
