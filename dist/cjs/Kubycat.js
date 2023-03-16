@@ -192,11 +192,16 @@ class Kubycat {
             if (status === KubycatFileStatus_js_1.default.Unchanged) {
                 return;
             }
-            if (status === KubycatFileStatus_js_1.default.Deleted) {
-                yield this.deleteFile(sync, file);
+            if (sync.to) {
+                if (status === KubycatFileStatus_js_1.default.Deleted) {
+                    yield this.deleteFile(sync, file);
+                }
+                else {
+                    yield this.updateFile(sync, file, status === KubycatFileStatus_js_1.default.Directory_Modified);
+                }
             }
             else {
-                yield this.updateFile(sync, file, status === KubycatFileStatus_js_1.default.Directory_Modified);
+                this.log(sync, chalk_1.default.yellow(` - no destination, nothing to do`));
             }
             if (sync.postLocal) {
                 if (sync.postLocal == 'kubycat::exit') {

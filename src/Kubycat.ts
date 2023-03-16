@@ -195,10 +195,14 @@ class Kubycat {
             return;
         }
 
-        if (status === KubycatFileStatus.Deleted) {
-            await this.deleteFile(sync, file);
+        if (sync.to) {
+            if (status === KubycatFileStatus.Deleted) {
+                await this.deleteFile(sync, file);
+            } else {
+                await this.updateFile(sync, file, status === KubycatFileStatus.Directory_Modified);
+            }
         } else {
-            await this.updateFile(sync, file, status === KubycatFileStatus.Directory_Modified);
+            this.log(sync, chalk.yellow(` - no destination, nothing to do`));
         }
 
         if (sync.postLocal) {

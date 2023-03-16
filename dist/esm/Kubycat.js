@@ -187,11 +187,16 @@ class Kubycat {
             if (status === KubycatFileStatus.Unchanged) {
                 return;
             }
-            if (status === KubycatFileStatus.Deleted) {
-                yield this.deleteFile(sync, file);
+            if (sync.to) {
+                if (status === KubycatFileStatus.Deleted) {
+                    yield this.deleteFile(sync, file);
+                }
+                else {
+                    yield this.updateFile(sync, file, status === KubycatFileStatus.Directory_Modified);
+                }
             }
             else {
-                yield this.updateFile(sync, file, status === KubycatFileStatus.Directory_Modified);
+                this.log(sync, chalk.yellow(` - no destination, nothing to do`));
             }
             if (sync.postLocal) {
                 if (sync.postLocal == 'kubycat::exit') {
