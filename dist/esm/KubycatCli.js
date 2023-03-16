@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 import KubycatConfig from "./KubycatConfig.js";
 import Kubycat from "./Kubycat.js";
-import fs from 'fs';
 class KubycatCli {
     static main(args) {
-        const info = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-        console.log('Kubycat version ' + info.version + '\n');
+        console.log('Kubycat version ' + this.version + '\n');
         if (args.length < 1) {
             console.error('Please provide a config file');
             return;
@@ -37,4 +35,5 @@ class KubycatCli {
         kubycat.start();
     }
 }
+KubycatCli.version = '1.1.1';
 KubycatCli.main(process.argv.slice(2));

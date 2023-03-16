@@ -6,11 +6,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const KubycatConfig_js_1 = __importDefault(require("./KubycatConfig.js"));
 const Kubycat_js_1 = __importDefault(require("./Kubycat.js"));
-const fs_1 = __importDefault(require("fs"));
 class KubycatCli {
     static main(args) {
-        const info = JSON.parse(fs_1.default.readFileSync('package.json', 'utf8'));
-        console.log('Kubycat version ' + info.version + '\n');
+        console.log('Kubycat version ' + this.version + '\n');
         if (args.length < 1) {
             console.error('Please provide a config file');
             return;
@@ -42,4 +40,5 @@ class KubycatCli {
         kubycat.start();
     }
 }
+KubycatCli.version = '1.1.1';
 KubycatCli.main(process.argv.slice(2));
