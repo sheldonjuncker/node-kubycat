@@ -5,9 +5,10 @@ import Kubycat from "./Kubycat.js";
 import fs from 'fs';
 
 class KubycatCli {
+    static version = '1.1.1';
+
     public static main(args: string[]): void {
-        const info = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-        console.log('Kubycat version ' + info.version + '\n');
+        console.log('Kubycat version ' + this.version + '\n');
 
         if (args.length < 1) {
             console.error('Please provide a config file');
