@@ -9,7 +9,7 @@ A small Node.js library for the watching and automated syncing of files into a l
 
 ```typescript
 const name = 'kubycat'
-let version = 1.1.1
+let version = 1.1.2
 const author = 'Sheldon Juncker <sheldon@dreamcloud.app>'
 const github = 'https://github.com/sheldonjuncker/node-kubycat'
 const license = 'MIT'
@@ -65,7 +65,7 @@ $ kubycat ./config.yaml
 ```
 
 ```typescript
-Kubycat version 1.1.1
+Kubycat version 1.1.2
 
 Reading from config file: config.yaml...
 {

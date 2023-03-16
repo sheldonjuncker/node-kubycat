@@ -5,7 +5,7 @@ import Kubycat from "./Kubycat.js";
 import fs from 'fs';
 
 class KubycatCli {
-    static version = '1.1.1';
+    static version = '1.1.2';
 
     public static main(args: string[]): void {
         console.log('Kubycat version ' + this.version + '\n');
