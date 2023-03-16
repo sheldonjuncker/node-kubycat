@@ -12,7 +12,7 @@ declare class Kubycat {
     unwatchFiles(): void;
     startQueue(interval?: number): Promise<void>;
     stopQueue(): void;
-    start(interval?: number): Promise<void>;
+    start(): Promise<void>;
     stop(): void;
     addToQueue(file: string): void;
     handleSync(file: string): Promise<void>;

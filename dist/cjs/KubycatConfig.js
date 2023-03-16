@@ -7,14 +7,21 @@ const KubycatSync_js_1 = __importDefault(require("./KubycatSync.js"));
 const yaml_1 = __importDefault(require("yaml"));
 const fs_1 = __importDefault(require("fs"));
 class KubycatConfig {
-    constructor(config = null, context = null, namespace = null, syncs = []) {
+    constructor(interval = 1000, config = null, context = null, namespace = null, syncs = []) {
         this._context = null;
         this._namespace = null;
         this._syncs = [];
+        this._interval = interval;
         this._config = config;
         this._context = context;
         this._namespace = namespace;
         this._syncs = syncs;
+    }
+    get interval() {
+        return this._interval;
+    }
+    set interval(value) {
+        this._interval = value;
     }
     get config() {
         return this._config;
@@ -50,7 +57,7 @@ class KubycatConfig {
         this._syncs = [];
     }
     static fromYaml(yaml) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         const config = yaml_1.default.parse(yaml);
         if (!config.kubycat) {
             throw new Error('invalid config file, missing kubycat section.');
@@ -77,16 +84,13 @@ class KubycatConfig {
             s.showLogs = (_d = sync['show-logs']) !== null && _d !== void 0 ? _d : true;
             syncs.push(s);
         }
-        return new KubycatConfig(config.kubycat.config, config.kubycat.context, config.kubycat.namespace, syncs);
+        return new KubycatConfig((_e = config.kubycat.interval) !== null && _e !== void 0 ? _e : 1000, config.kubycat.config, config.kubycat.context, config.kubycat.namespace, syncs);
     }
     static fromYamlFile(path) {
         const yaml = fs_1.default.readFileSync(path, 'utf8');
         return KubycatConfig.fromYaml(yaml);
     }
     validate() {
-        if (this.syncs.length === 0) {
-            throw new Error("No syncs defined.");
-        }
         for (const sync of this.syncs) {
             sync.validate();
         }

@@ -1,10 +1,13 @@
 import KubycatSync from "./KubycatSync.js";
 declare class KubycatConfig {
+    private _interval;
     private _config;
     private _context;
     private _namespace;
     private _syncs;
-    constructor(config?: string | null, context?: string | null, namespace?: string | null, syncs?: KubycatSync[]);
+    constructor(interval?: number, config?: string | null, context?: string | null, namespace?: string | null, syncs?: KubycatSync[]);
+    get interval(): number;
+    set interval(value: number);
     get config(): string | null;
     set config(value: string | null);
     get context(): string | null;

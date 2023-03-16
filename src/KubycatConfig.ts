@@ -3,17 +3,27 @@ import YAML from 'yaml'
 import fs from 'fs'
 
 class KubycatConfig {
+    private _interval: number;
     private _config: string | null;
     private _context: string | null = null;
     private _namespace: string | null = null;
 
     private _syncs: KubycatSync[] = [];
 
-    constructor(config: string | null = null, context: string | null = null, namespace: string | null = null, syncs: KubycatSync[] = []) {
+    constructor(interval: number=1000, config: string | null = null, context: string | null = null, namespace: string | null = null, syncs: KubycatSync[] = []) {
+        this._interval = interval;
         this._config = config;
         this._context = context;
         this._namespace = namespace;
         this._syncs = syncs;
+    }
+
+    get interval(): number {
+        return this._interval;
+    }
+
+    set interval(value: number) {
+        this._interval = value;
     }
 
     get config(): string | null {
@@ -89,7 +99,7 @@ class KubycatConfig {
             s.showLogs = sync['show-logs'] ?? true;
             syncs.push(s);
         }
-        return new KubycatConfig(config.kubycat.config, config.kubycat.context, config.kubycat.namespace, syncs);
+        return new KubycatConfig(config.kubycat.interval ?? 1000, config.kubycat.config, config.kubycat.context, config.kubycat.namespace, syncs);
     }
 
     static fromYamlFile(path: string): KubycatConfig {
@@ -98,10 +108,6 @@ class KubycatConfig {
     }
 
     validate() {
-        if (this.syncs.length === 0) {
-            throw new Error("No syncs defined.");
-        }
-
         for (const sync of this.syncs) {
             sync.validate();
         }

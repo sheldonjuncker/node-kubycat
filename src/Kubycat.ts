@@ -64,9 +64,9 @@ class Kubycat {
         this._syncing = false;
     }
 
-    public async start(interval: number = 1000) {
+    public async start() {
         this.watchFiles();
-        return await this.startQueue(interval);
+        return await this.startQueue(this.config.interval);
     }
 
     public stop() {

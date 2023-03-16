@@ -67,10 +67,10 @@ class Kubycat {
     stopQueue() {
         this._syncing = false;
     }
-    start(interval = 1000) {
+    start() {
         return __awaiter(this, void 0, void 0, function* () {
             this.watchFiles();
-            return yield this.startQueue(interval);
+            return yield this.startQueue(this.config.interval);
         });
     }
     stop() {

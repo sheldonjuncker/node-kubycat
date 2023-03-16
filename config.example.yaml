@@ -6,6 +6,8 @@ kubycat:
   # The Kubernetes namespace to use
   # This can be specified or overridden for each individual sync
   namespace: default
+  # Sync interval in milliseconds
+  interval: 1000
   # Individual sync configs
   sync:
     # The name of the sync
@@ -13,7 +15,7 @@ kubycat:
       # Whether to enable this sync
       enabled: true
       # The base directory to sync from
-      base: /home/johndoe/test/
+      base: /home/johndoe/test
       # Overridden Kubernetes options
       config: /home/johndoe/.kube/do-sfo3-k8s-johndoe
       context: do-sfo3-k8s-johndoe
@@ -35,7 +37,7 @@ kubycat:
       pod: pod-name
       # The Kubernetes pod label to use for finding the pod(s) to sync into
       # This can be used instead of specifying a single pod
-      pod-label: key=value
+      # pod-label: key=value
       # Whether to cache the pods for this sync
       cache-pods: true
       # The shell command to run in the container for deleting files
@@ -47,7 +49,7 @@ kubycat:
       # Whether to show the logs for the sync
       show-logs: true
     - name: composer
-      base: /home/johndoe/test/
+      base: /home/johndoe/test
       namespace: other
       from:
         - composer.json

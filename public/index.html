@@ -15,7 +15,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kubycat -- Node.js Kubernetes Syncing</title>
+    <title>Kubycat -- Node.js to k8s</title>
     <link rel="stylesheet" href="https://stackedit.io/style.css" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7GT2F7CS9R"></script>
     <script>
@@ -34,13 +34,14 @@
     <h1 id="kubycat">kubycat</h1>
     <p>A small Node.js library for the watching and automated syncing of files into a local or remote Kubernetes cluster.</p>
     <pre class=" language-typescript"><code class="prism  language-typescript"><span class="token keyword">const</span> name <span class="token operator">=</span> <span class="token string">'kubycat'</span>
-<span class="token keyword">let</span> version <span class="token operator">=</span> <span class="token number">1.0</span><span class="token punctuation">.</span><span class="token number">13</span>
+<span class="token keyword">let</span> version <span class="token operator">=</span> <span class="token number">1.1</span><span class="token punctuation">.</span><span class="token number">0</span>
 <span class="token keyword">const</span> author <span class="token operator">=</span> <span class="token string">'Sheldon Juncker &lt;sheldon@dreamcloud.app&gt;'</span>
 <span class="token keyword">const</span> github <span class="token operator">=</span> <span class="token string">'https://github.com/sheldonjuncker/node-kubycat'</span>
 <span class="token keyword">const</span> license <span class="token operator">=</span> <span class="token string">'MIT'</span>
 </code></pre>
     <h2 id="table-of-contents">Table of Contents</h2>
     <ul>
+        <li><a href="#quick-start">Quick Start</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#installation">Installation</a>
             <ul>
@@ -60,6 +61,56 @@
         <li><a href="#contributing">Contributing</a></li>
         <li><a href="#license">License</a></li>
     </ul>
+    <h2 id="quick-start">Quick Start</h2>
+    <p>1 - Install Kubycat globally</p>
+    <pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">npm</span> <span class="token function">install</span> -g kubycat
+</code></pre>
+    <p>2 - Create Kubycat’s config file</p>
+    <pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">touch</span> ./config.yaml
+</code></pre>
+    <pre class=" language-yaml"><code class="prism  language-yaml"><span class="token comment"># config.yaml</span>
+<span class="token key atrule">kubycat</span><span class="token punctuation">:</span>
+  <span class="token key atrule">namespace</span><span class="token punctuation">:</span> default
+  <span class="token key atrule">sync</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> web<span class="token punctuation">-</span>app
+      <span class="token key atrule">base</span><span class="token punctuation">:</span> /home/johndoe/web<span class="token punctuation">-</span>app
+      <span class="token key atrule">from</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> src
+        <span class="token punctuation">-</span> config
+        <span class="token punctuation">-</span> index.php
+        <span class="token punctuation">-</span> .env
+        <span class="token punctuation">-</span> .htaccess
+      <span class="token key atrule">to</span><span class="token punctuation">:</span> /remote/www
+      <span class="token key atrule">pod</span><span class="token punctuation">:</span> php<span class="token punctuation">-</span><span class="token number">0</span>
+      <span class="token key atrule">shell</span><span class="token punctuation">:</span> /bin/sh
+</code></pre>
+    <p>3 - Run Kubycat to sync files with the created config file:</p>
+    <pre class=" language-bash"><code class="prism  language-bash">$ kubycat ./config.yaml
+</code></pre>
+    <pre class=" language-typescript"><code class="prism  language-typescript">Kubycat version <span class="token number">1.0</span><span class="token punctuation">.</span><span class="token number">13</span>
+
+Reading <span class="token keyword">from</span> config file<span class="token punctuation">:</span> config<span class="token punctuation">.</span>yaml<span class="token operator">...</span>
+<span class="token punctuation">{</span>
+  name<span class="token punctuation">:</span> <span class="token string">'web-app'</span><span class="token punctuation">,</span>
+  base<span class="token punctuation">:</span> <span class="token string">'/home/johndoe/web-app'</span><span class="token punctuation">,</span>
+  <span class="token keyword">from</span><span class="token punctuation">:</span> <span class="token punctuation">[</span> <span class="token string">'src'</span><span class="token punctuation">,</span> <span class="token string">'config'</span><span class="token punctuation">,</span> <span class="token string">'index.php'</span><span class="token punctuation">,</span> <span class="token string">'.env'</span><span class="token punctuation">,</span> <span class="token string">'.htaccess'</span> <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  to<span class="token punctuation">:</span> <span class="token string">'/remote/www'</span><span class="token punctuation">,</span>
+  pod<span class="token punctuation">:</span> <span class="token string">'php-0'</span><span class="token punctuation">,</span>
+  shell<span class="token punctuation">:</span> <span class="token string">'/bin/sh'</span>
+<span class="token punctuation">}</span>
+Config file loaded successfully<span class="token punctuation">.</span>
+
+Watching <span class="token keyword">for</span> file changes recursively <span class="token keyword">in</span> the following paths<span class="token punctuation">:</span>
+web<span class="token operator">-</span>app<span class="token punctuation">:</span>
+ <span class="token operator">-</span> <span class="token operator">/</span>home<span class="token operator">/</span>johndoe<span class="token operator">/</span>web<span class="token operator">-</span>app<span class="token operator">/</span>src
+ <span class="token operator">-</span> <span class="token operator">/</span>home<span class="token operator">/</span>johndoe<span class="token operator">/</span>web<span class="token operator">-</span>app<span class="token operator">/</span>config
+ <span class="token operator">-</span> <span class="token operator">/</span>home<span class="token operator">/</span>johndoe<span class="token operator">/</span>web<span class="token operator">-</span>app<span class="token operator">/</span>index<span class="token punctuation">.</span>php
+ <span class="token operator">-</span> <span class="token operator">/</span>home<span class="token operator">/</span>johndoe<span class="token regex">/web-app/</span><span class="token punctuation">.</span>env
+ <span class="token operator">-</span> <span class="token operator">/</span>home<span class="token operator">/</span>johndoe<span class="token regex">/web-app/</span><span class="token punctuation">.</span>htaccess
+
+Watching <span class="token keyword">for</span> files to sync<span class="token operator">...</span>               <span class="token punctuation">(</span>Ctrl<span class="token operator">-</span>C to exit<span class="token punctuation">)</span>
+Press Ctrl<span class="token operator">+</span>C to exit<span class="token punctuation">.</span>
+</code></pre>
     <h2 id="overview">Overview</h2>
     <p>Kubycat is a small library and command-line utility for the watching and automated syncing of files into a local or remote Kubernetes cluster.</p>
     <p>Kubycat is best suited for local development where it can be used as a simpler alternative to <code>ksync</code> or <code>Skaffold</code> where you either don’t want to install components into your cluster or you don’t want to use a complex project setup with a lot of configuration.</p>
@@ -120,6 +171,7 @@ $ yarn kubycat version
   <span class="token key atrule">config</span><span class="token punctuation">:</span> /home/johndoe/.kube/config
   <span class="token key atrule">context</span><span class="token punctuation">:</span> minikube
   <span class="token key atrule">namespace</span><span class="token punctuation">:</span> default
+  <span class="token key atrule">interval</span><span class="token punctuation">:</span> <span class="token number">1000</span>
   <span class="token key atrule">sync</span><span class="token punctuation">:</span>
     <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> test
       <span class="token key atrule">enabled</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
@@ -158,7 +210,7 @@ $ yarn kubycat version
     <p><em>Example Typescript:</em></p>
     <pre class=" language-typescript"><code class="prism  language-typescript"><span class="token keyword">import</span> <span class="token punctuation">{</span>KubycatConfig<span class="token punctuation">,</span> KubycatSync<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'kubycat'</span><span class="token punctuation">;</span>
 
-<span class="token keyword">const</span> config <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">KubycatConfig</span><span class="token punctuation">(</span><span class="token string">'minikube'</span><span class="token punctuation">,</span> <span class="token string">'~/.kube/config'</span><span class="token punctuation">,</span> <span class="token string">'default'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> config <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">KubycatConfig</span><span class="token punctuation">(</span><span class="token number">1000</span><span class="token punctuation">,</span> <span class="token string">'minikube'</span><span class="token punctuation">,</span> <span class="token string">'~/.kube/config'</span><span class="token punctuation">,</span> <span class="token string">'default'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 config<span class="token punctuation">.</span><span class="token function">addSync</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">KubycatSync</span><span class="token punctuation">(</span>
     <span class="token string">'test'</span><span class="token punctuation">,</span>
     <span class="token string">'/home/johndoe/test'</span><span class="token punctuation">,</span>
@@ -170,30 +222,49 @@ config<span class="token punctuation">.</span><span class="token function">addSy
     <h3 id="kubycat-1">kubycat</h3>
     <p>The <code>kubycat</code> section contains all options to configure Kubycat.</p>
     <h3 id="kubycat.config">kubycat.config</h3>
+    <p>Default: <code>none</code></p>
     <p>The <code>kubycat.config</code> option specifies the Kubernetes config file to use. This should be an absolute path to the config file, but can be left blank in which case the default config file will be used by kubectl.</p>
     <p>You can also override this for any individual sync specification.</p>
     <h3 id="kubycat.context">kubycat.context</h3>
+    <p>Default: <code>none</code></p>
     <p>The <code>kubycat.context</code> option specifies the Kubernetes context to use. This allows you to specify which Kubernetes cluster to connect to while using the same config file.</p>
     <p>Like the <code>kubycat.config</code> option, this can be left blank or overridden for any individual sync specification.</p>
     <h3 id="kubycat.namespace">kubycat.namespace</h3>
+    <p>Required: <code>yes</code></p>
     <p>The <code>kubycat.namespace</code> option specifies the default Kubernetes namespace to sync files into. This can also be left blank to use the default namespace or overridden.</p>
+    <h3 id="kubycat.interval">kubycat.interval</h3>
+    <p>Default: <code>1000</code></p>
+    <p>The <code>kubycat.interval</code> option specifies the interval in milliseconds to wait between checking for file changes.</p>
     <h3 id="kubycat.sync">kubycat.sync</h3>
-    <p>The <code>kubycat.sync</code> option is a list of sync specifications. Each sync specification contains the following options:</p>
+    <p>Required: <code>no</code></p>
+    <p>The <code>kubycat.sync</code> option is a list of sync specifications.</p>
+    <p>Each sync specification contains the following options:</p>
     <h3 id="kubycat.sync.name"><a href="http://kubycat.sync.name">kubycat.sync.name</a></h3>
+    <p>Required: <code>yes</code></p>
     <p>The <code>kubycat.sync.name</code> option specifies the name of the sync. This is currently not used except to make the YAML look prettier and can be anything.</p>
     <h3 id="kubycat.sync.enabled">kubycat.sync.enabled</h3>
+    <p>Default: <code>true</code></p>
     <p>The <code>kubycat.sync.enabled</code> option specifies whether the sync is enabled or not. This can be used to temporarily disable a sync without having to remove it from the configuration file.</p>
     <h3 id="kubycat.sync.base">kubycat.sync.base</h3>
+    <p>Required: <code>yes</code></p>
     <p>The <code>kubycat.sync.base</code> option specifies the base directory to sync from. This must be an absolute path, from which the individual <code>from</code> paths will be resolved.</p>
     <h3 id="kubycat.sync.namespace">kubycat.sync.namespace</h3>
+    <p>Default: <code>kubycat.namespace</code></p>
+    <p>Required: <code>yes</code> -  unless the global namespace is set.</p>
     <p>The <code>kubycat.sync.namespace</code> option specifies the Kubernetes namespace to sync files into. This can be left blank to use the global or default namespace.</p>
     <h3 id="kubycat.sync.config">kubycat.sync.config</h3>
+    <p>Default: <code>kubycat.config</code></p>
+    <p>Required: <code>no</code></p>
     <p>The <code>kubycat.sync.config</code> option specifies the Kubernetes config file to use for this sync. This should be an absolute path to the config file, but can be left blank in which case the global or default config will be used.</p>
     <h3 id="kubycat.sync.context">kubycat.sync.context</h3>
+    <p>Default: <code>kubycat.context</code></p>
+    <p>Required: <code>no</code></p>
     <p>The <code>kubycat.sync.context</code> option specifies the Kubernetes context to use for this sync. This can be left blank to use the global or default context.</p>
     <h3 id="kubycat.sync.from">kubycat.sync.from</h3>
+    <p>Required: <code>yes</code></p>
     <p>The <code>kubycat.sync.from</code> option is a list of files and/or folders to sync from the <code>base</code> directory. This can be a single file or folder or a list of files and folders. Each path must be a relative path from the <code>base</code> directory and if a folder will be synced recursively.</p>
     <h3 id="kubycat.sync.excluding">kubycat.sync.excluding</h3>
+    <p>Default: <code>none</code></p>
     <p>The <code>kubycat.sync.excluding</code> option can be a list of regex file patterns to exclude from syncing. These are applied to the full path of the file being synced. These regexes are case-sensitive by default.</p>
     <p>Example to disable syncing for IDE files:</p>
     <pre class=" language-yaml"><code class="prism  language-yaml"><span class="token key atrule">kubycat</span><span class="token punctuation">:</span>
@@ -207,6 +278,7 @@ config<span class="token punctuation">.</span><span class="token function">addSy
         <span class="token punctuation">-</span> .+~$
 </code></pre>
     <h3 id="kubycat.sync.including">kubycat.sync.including</h3>
+    <p>Default: <code>none</code></p>
     <p>The <code>kubycat.sync.including</code> option can be a list of regex file patterns to include in syncing. These are applied to the full path of the file being synced. These regexes are case-sensitive by default.</p>
     <p>Example to only sync PHP files:</p>
     <pre class=" language-yaml"><code class="prism  language-yaml"><span class="token key atrule">kubycat</span><span class="token punctuation">:</span>
@@ -215,6 +287,8 @@ config<span class="token punctuation">.</span><span class="token function">addSy
       <span class="token key atrule">from</span><span class="token punctuation">:</span>
       <span class="token punctuation">-</span> src
       <span class="token punctuation">...</span>
+      <span class="token key atrule">excluding</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> .+$
       <span class="token key atrule">including</span><span class="token punctuation">:</span>
         <span class="token punctuation">-</span> .+\.php$
 </code></pre>
@@ -225,32 +299,41 @@ config<span class="token punctuation">.</span><span class="token function">addSy
         <li>Any files matching the “including” option will be included in syncing regardless of whether they would otherwise be excluded by step 2.</li>
     </ol>
     <h3 id="kubycat.sync.to"><a href="http://kubycat.sync.to">kubycat.sync.to</a></h3>
+    <p>Default: <code>none</code></p>
     <p>The <code>kubycat.sync.to</code> option specifies the remote path to sync files to. This must be an absolute path.</p>
     <p>The to path is assumed to be logically equivalent to the <code>base</code> directory. For example, if the <code>base</code> directory is <code>/home/johndoe/test/</code> and the <code>to</code> path is <code>/remote/server</code> then the file <code>/home/johndoe/test/src/index.php</code> will be synced to <code>/remote/server/src/index.php</code>.</p>
     <p>This field is optional in which case only the local command will be executed upon file change and no syncing will take place.</p>
     <p>This is a convenient way to run a custom file watcher without needing to sync files, and for reloading configs.</p>
     <h3 id="kubycat.sync.pod">kubycat.sync.pod</h3>
+    <p>Default: <code>none</code></p>
+    <p>Required: <code>no</code> - unless the <code>pod-label</code> option is not specified and the <code>to</code> option is set.</p>
     <p>The <code>kubycat.sync.pod</code> option specifies the name of the pod to sync files into. This is useful for simple deployments where you know the name of the single pod where you want to sync files.</p>
     <h3 id="kubycat.sync.pod-label">kubycat.sync.pod-label</h3>
+    <p>Default: <code>none</code></p>
+    <p>Required: <code>no</code> - unless the <code>pod</code> option is not specified and the <code>to</code> option is set.</p>
     <p>Alternatively, the <code>kubycat.sync.pod-label</code> option can be used to specify a label to use to find the pod to sync files into. This is useful for deployments where you have multiple pods whose names you don’t know but you can identify them by a label.</p>
     <p><code>pod</code> and <code>pod-label</code> are mutually exclusive and only one can be specified.</p>
-    <p>One of the two options must be specified if the <code>to</code> option is set.</p>
     <h3 id="kubycat.sync.cache-pods">kubycat.sync.cache-pods</h3>
+    <p>Default: <code>true</code></p>
     <p>The <code>kubycat.sync.cache-pods</code> option specifies whether to cache the list of pods for the specified label. This is useful if you have a deployment with a large number of pods and you want to avoid having to query the Kubernetes API every time a file changes.</p>
     <h3 id="kubycat.sync.shell">kubycat.sync.shell</h3>
+    <p>Required: <code>no</code> - unless the <code>to</code> option is set.</p>
     <p>The <code>kubycat.sync.shell</code> option specifies the shell to use when executing commands in the pod. This is required for deleting files and folders within the Kubernetes pods because <code>kubectl</code> provides no <code>rm</code> equivalent to <code>cp</code>.</p>
-    <p>This option is required if the <code>to</code> option is set.</p>
     <h3 id="kubycat.sync.post-local">kubycat.sync.post-local</h3>
+    <p>Default: <code>none</code></p>
     <p>The <code>kubycat.sync.post-local</code> option specifies a local command to run after syncing files to the Kubernetes pod. This is useful for running commands like <code>composer install</code> or <code>npm install</code> to install dependencies.</p>
     <p>You can also specify the special <code>kubycat::exit</code> command to exit Kubycat after a sync is performed.</p>
     <p>This might be useful if you only want to sync a one-off change to a pod and then exit.</p>
     <h3 id="kubycat.sync.post-remote">kubycat.sync.post-remote</h3>
+    <p>Default: <code>none</code></p>
     <p>The <code>kubycat.sync.post-remote</code> option specifies a remote command to run in each pod after files have been synced. This is useful for running commands like <code>composer install</code> or <code>npm install</code> to install dependencies.</p>
     <p>With both <code>post-local</code> and <code>post-remote</code> you can use the <code>${synced_file}</code>placeholder to specify the path to the local or remote file that was synced. This is useful if you want to run a command on a specific file that was synced.</p>
     <h3 id="kubycat.sync.notify">kubycat.sync.notify</h3>
+    <p>Default: <code>false</code></p>
     <p>The <code>kubycat.sync.notify</code> option can be used to send desktop notifications when syncing actions or other commands fail.</p>
     <h3 id="kubycat.sync.on-error">kubycat.sync.on-error</h3>
-    <p>The <code>kubycat.sync.on-error</code> option specifies what to do when a sync fails. The options are <code>exit</code>, <code>reload</code>, <code>ignore</code>, and <code>throw</code>. The default is <code>throw</code>.</p>
+    <p>Default: <code>throw</code></p>
+    <p>The <code>kubycat.sync.on-error</code> option specifies what to do when a sync fails. The options are <code>exit</code>, <code>reload</code>, <code>ignore</code>, and <code>throw</code>.</p>
     <ol>
         <li>Exit: Kubycat will exit the Node process with a non-zero exit code.</li>
         <li>Reload: Kubycat will exit the Node process with a zero exit code.</li>
@@ -260,6 +343,7 @@ config<span class="token punctuation">.</span><span class="token function">addSy
     <p>Reloading is the same as exiting except that a zero exit code is returned. This is useful if you want to run Kubycat as a service and have it be restarted when a sync fails.<br>
         This can also be used to have Kubycat watch its own configuration file and reload when it changes.</p>
     <h3 id="kubycat.sync.show-logs">kubycat.sync.show-logs</h3>
+    <p>Default: <code>true</code></p>
     <p>The <code>kubycat.sync.show-logs</code> option specifies whether to show syncing logs. This can be disabled when running programmatically as a module.</p>
     <h2 id="usage">Usage</h2>
     <p>Kubycat can be used as a command-line tool or as a module.<br>
@@ -271,7 +355,7 @@ config<span class="token punctuation">.</span><span class="token function">addSy
 
 <span class="token keyword">const</span> config <span class="token operator">=</span> KubycatConfig<span class="token punctuation">.</span><span class="token function">fromYamlFile</span><span class="token punctuation">(</span><span class="token string">'/path/to/config.yaml'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> kubycat <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Kubycat</span><span class="token punctuation">(</span>config<span class="token punctuation">)</span><span class="token punctuation">;</span>
-kubycat<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token number">1000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+kubycat<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
     <p>In either method, Kubycat will watch for file changes and sync them to the Kubernetes cluster via a synchronous queue.</p>
     <h3 id="manual-syncing">Manual Syncing</h3>
@@ -281,7 +365,7 @@ kubycat<span class="token punctuation">.</span><span class="token function">star
 
 <span class="token keyword">const</span> config <span class="token operator">=</span> KubycatConfig<span class="token punctuation">.</span><span class="token function">fromYamlFile</span><span class="token punctuation">(</span><span class="token string">'/path/to/config.yaml'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword">const</span> kubycat <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Kubycat</span><span class="token punctuation">(</span>config<span class="token punctuation">)</span><span class="token punctuation">;</span>
-kubycat<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token number">500</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+kubycat<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 kubycat<span class="token punctuation">.</span><span class="token function">addToQueue</span><span class="token punctuation">(</span><span class="token string">'/absolute/path/to/file'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
     <p>This will cause the file to be added to the end of the queue and synced when the queue is processed.</p>
@@ -301,7 +385,7 @@ kubycat<span class="token punctuation">.</span><span class="token function">addT
     <pre class=" language-bash"><code class="prism  language-bash">$ kubycat <span class="token function">help</span>
 </code></pre>
     <h2 id="about">About</h2>
-    <p>I wrote Kubycat because I couldn’t get <code>ksync</code> to work on my machine and I wanted a simple way to sync files into my minikube Kubernetes cluster for local development. I played around with other approaches such as <code>Skaffold</code>, but I found that they were too complex for my needs.</p>
+    <p>I wrote Kubycat because I couldn’t get <code>ksync</code> (no longer maintained) to work on my machine and I wanted a simple way to sync files into my minikube Kubernetes cluster for local development. I played around with other approaches such as <code>Skaffold</code>, but I found that they were too complex for my needs.</p>
     <p>The problem at hand didn’t seem too difficult, so I decided to write my own solution. It’s far from polished, but it works for me quite nicely, and maybe that means others will find it helpful as well.</p>
     <p>Kubycat was originally a Perl script and that repo is still available <a href="https://github.com/sheldonjuncker/kubycat">here</a> though it isn’t maintained anymore.</p>
     <p>I’m currently using Kubycat for local development of <a href="https://dreamcloud.app">Dreamcloud</a>–an online social network and dream journal to help people better understand their dreams and find likeminded individuals.</p>
@@ -316,4 +400,5 @@ kubycat<span class="token punctuation">.</span><span class="token function">addT
 </body>
 
 </html>
+
 

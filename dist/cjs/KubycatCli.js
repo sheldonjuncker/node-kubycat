@@ -9,6 +9,8 @@ const Kubycat_js_1 = __importDefault(require("./Kubycat.js"));
 const fs_1 = __importDefault(require("fs"));
 class KubycatCli {
     static main(args) {
+        const info = JSON.parse(fs_1.default.readFileSync('package.json', 'utf8'));
+        console.log('Kubycat version ' + info.version + '\n');
         if (args.length < 1) {
             console.error('Please provide a config file');
             return;
@@ -19,8 +21,6 @@ class KubycatCli {
             return;
         }
         if (configFile == 'version') {
-            const info = JSON.parse(fs_1.default.readFileSync('package.json', 'utf8'));
-            console.log('Kubycat version ' + info.version);
             return;
         }
         console.log('Reading from config file: ' + configFile + '...');
@@ -38,9 +38,8 @@ class KubycatCli {
             }
         }
         console.log('');
-        console.log('Watching files...');
-        console.log('Press Ctrl+C to exit.\n');
-        kubycat.start(250);
+        console.log('Watching for files to sync...\t\t\tCtrl+C to exit');
+        kubycat.start();
     }
 }
 KubycatCli.main(process.argv.slice(2));
