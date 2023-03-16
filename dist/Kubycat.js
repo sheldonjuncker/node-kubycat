@@ -186,10 +186,16 @@ class Kubycat {
                 yield this.updateFile(sync, file, status === FileStatus.Directory_Modified);
             }
             if (sync.postLocal) {
-                yield this.runCommand(sync, sync.postLocal, file, false);
+                if (sync.postLocal == 'kubycat::exit') {
+                    this.stop();
+                    exit(0);
+                }
+                const localCommand = sync.postLocal.replace('${synced_file}', file);
+                yield this.runCommand(sync, localCommand, file, false);
             }
             if (sync.postRemote) {
-                yield this.runCommand(sync, sync.postRemote, file, true);
+                const remoteCommand = sync.postRemote.replace('${synced_file}', file);
+                yield this.runCommand(sync, remoteCommand, file, true);
             }
         });
     }
