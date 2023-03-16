@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var KubycatFileStatus;
 (function (KubycatFileStatus) {
     KubycatFileStatus["Unchanged"] = "Unchanged";
@@ -5,4 +7,4 @@ var KubycatFileStatus;
     KubycatFileStatus["Deleted"] = "Deleted";
     KubycatFileStatus["Directory_Modified"] = "Directory_Modified";
 })(KubycatFileStatus || (KubycatFileStatus = {}));
-export default KubycatFileStatus;
+exports.default = KubycatFileStatus;

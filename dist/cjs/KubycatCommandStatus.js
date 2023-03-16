@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 class KubycatCommandStatus {
     constructor(status, stdout = [], stderr = []) {
         this._code = status;
@@ -29,4 +31,4 @@ class KubycatCommandStatus {
         this._stderr.push(line);
     }
 }
-export default KubycatCommandStatus;
+exports.default = KubycatCommandStatus;

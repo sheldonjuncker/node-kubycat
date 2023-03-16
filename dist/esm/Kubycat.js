@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import fs from 'fs';
 import crypto from 'crypto';
 import { spawn } from 'child_process';
@@ -5,13 +14,7 @@ import KubycatFileStatus from "./KubycatFileStatus.js";
 import KubycatCommandStatus from "./KubycatCommandStatus.js";
 import { exit } from 'node:process';
 import notifier from 'node-notifier';
-let chalk = null;
-async function importChalk() {
-    if (!chalk) {
-        chalk = (await import("chalk")).default;
-    }
-    return chalk;
-}
+import chalk from 'chalk';
 class Kubycat {
     constructor(config) {
         this._fileCache = {};
@@ -33,13 +36,13 @@ class Kubycat {
                 continue;
             }
             for (const from of sync.from) {
-                const watcher = fs.watch(sync.base + '/' + from, { recursive: true }, async (_event, file) => {
+                const watcher = fs.watch(sync.base + '/' + from, { recursive: true }, (_event, file) => __awaiter(this, void 0, void 0, function* () {
                     if (file) {
                         file = file.replace(/\\/g, '/');
                         const absolutePath = sync.base + '/' + from + '/' + file;
                         this._syncQueue.push(absolutePath);
                     }
-                });
+                }));
                 this._fileWatchers.push(watcher);
             }
         }
@@ -50,16 +53,20 @@ class Kubycat {
         }
         this._fileWatchers = [];
     }
-    async startQueue(interval = 1000) {
-        this._syncing = true;
-        await this.processQueue(interval);
+    startQueue(interval = 1000) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._syncing = true;
+            yield this.processQueue(interval);
+        });
     }
     stopQueue() {
         this._syncing = false;
     }
-    async start(interval = 1000) {
-        this.watchFiles();
-        return await this.startQueue(interval);
+    start(interval = 1000) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.watchFiles();
+            return yield this.startQueue(interval);
+        });
     }
     stop() {
         this.unwatchFiles();
@@ -68,71 +75,71 @@ class Kubycat {
     addToQueue(file) {
         this._syncQueue.push(file);
     }
-    async handleSync(file) {
-        let excludedSync;
-        const sync = this.config.syncs.find(s => {
-            if (!s.enabled) {
-                return false;
-            }
-            //Must be within the base path
-            if (!file.startsWith(s.base)) {
-                return false;
-            }
-            const relativeFile = file.substring(s.base.length + 1);
-            //Must be within one of the from paths (recursive)
-            if (!s.from.some(f => relativeFile.startsWith(f))) {
-                return false;
-            }
-            //Must not be in the excluding regexes
-            if (s.excluding.some(e => file.match(e))) {
-                excludedSync = s;
-                //Unless it is in the including regexes
-                if (!s.including.some(i => file.match(i))) {
+    handleSync(file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let excludedSync;
+            const sync = this.config.syncs.find(s => {
+                if (!s.enabled) {
                     return false;
                 }
-                else {
-                    excludedSync = null;
+                //Must be within the base path
+                if (!file.startsWith(s.base)) {
+                    return false;
+                }
+                const relativeFile = file.substring(s.base.length + 1);
+                //Must be within one of the from paths (recursive)
+                if (!s.from.some(f => relativeFile.startsWith(f))) {
+                    return false;
+                }
+                //Must not be in the excluding regexes
+                if (s.excluding.some(e => file.match(e))) {
+                    excludedSync = s;
+                    //Unless it is in the including regexes
+                    if (!s.including.some(i => file.match(i))) {
+                        return false;
+                    }
+                    else {
+                        excludedSync = null;
+                    }
+                }
+                return true;
+            });
+            if (!sync) {
+                if (excludedSync) {
+                    this.log(excludedSync, chalk.blue(`sync\t${file}`));
+                    this.log(excludedSync, chalk.yellow(` - excluded`));
+                }
+                return;
+            }
+            else {
+                this.log(sync, chalk.blue(`sync\t${file}`));
+                this.log(sync, chalk.green(` - sync=${sync.name}`));
+            }
+            return yield this.runSync(sync, file);
+        });
+    }
+    processQueue(interval = 1000) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this._syncing) {
+                return;
+            }
+            //get the current time in milliseconds
+            const now = new Date().getTime();
+            if (this._syncQueue.length > 0) {
+                const file = this._syncQueue.shift();
+                if (file) {
+                    yield this.handleSync(file);
                 }
             }
-            return true;
-        });
-        if (!sync) {
-            if (excludedSync) {
-                //@ts-ignore
-                this.log(excludedSync, (await importChalk()).blue(`sync\t${file}`));
-                //@ts-ignore
-                this.log(excludedSync, (await importChalk()).yellow(` - excluded`));
-            }
-            return;
-        }
-        else {
-            //@ts-ignore
-            this.log(sync, (await importChalk()).blue(`sync\t${file}`));
-            //@ts-ignore
-            this.log(sync, (await importChalk()).green(` - sync=${sync.name}`));
-        }
-        return await this.runSync(sync, file);
-    }
-    async processQueue(interval = 1000) {
-        if (!this._syncing) {
-            return;
-        }
-        //get the current time in milliseconds
-        const now = new Date().getTime();
-        if (this._syncQueue.length > 0) {
-            const file = this._syncQueue.shift();
-            if (file) {
-                await this.handleSync(file);
-            }
-        }
-        //get the current time in milliseconds
-        const end = new Date().getTime();
-        //wait up to interval milliseconds before returning a promise that runs the function again
-        const timeout = Math.max(0, interval - (end - now));
-        return new Promise(resolve => {
-            setTimeout(async () => {
-                resolve(this.processQueue(interval));
-            }, timeout);
+            //get the current time in milliseconds
+            const end = new Date().getTime();
+            //wait up to interval milliseconds before returning a promise that runs the function again
+            const timeout = Math.max(0, interval - (end - now));
+            return new Promise(resolve => {
+                setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                    resolve(this.processQueue(interval));
+                }), timeout);
+            });
         });
     }
     getFileHash(file) {
@@ -173,110 +180,115 @@ class Kubycat {
             return KubycatFileStatus.Modified;
         }
     }
-    async runSync(sync, file) {
-        const status = this.getFileStatus(file);
-        this.log(sync, ` - status=${status}`);
-        if (status === KubycatFileStatus.Unchanged) {
-            return;
-        }
-        if (status === KubycatFileStatus.Deleted) {
-            await this.deleteFile(sync, file);
-        }
-        else {
-            await this.updateFile(sync, file, status === KubycatFileStatus.Directory_Modified);
-        }
-        if (sync.postLocal) {
-            if (sync.postLocal == 'kubycat::exit') {
-                this.stop();
-                exit(0);
+    runSync(sync, file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const status = this.getFileStatus(file);
+            this.log(sync, ` - status=${status}`);
+            if (status === KubycatFileStatus.Unchanged) {
+                return;
             }
-            const localCommand = sync.postLocal.replace('${synced_file}', file);
-            await this.runCommand(sync, localCommand, file, false);
-        }
-        if (sync.postRemote) {
-            const remoteCommand = sync.postRemote.replace('${synced_file}', file);
-            await this.runCommand(sync, remoteCommand, file, true);
-        }
-    }
-    async deleteFile(sync, file) {
-        const base = this.getKubernetesBaseCommand(sync);
-        const relativePath = file.substring(sync.base.length + 1);
-        const command = base.join(' ') + ' exec $POD -- ' + sync.shell + ' -c "rm -Rf ' + sync.to + '/' + relativePath + '"';
-        await this.runCommand(sync, command, file, true);
-    }
-    async updateFile(sync, file, directory) {
-        const base = this.getKubernetesBaseCommand(sync);
-        const namespace = sync.namespace;
-        let relativePath = file.substring(sync.base.length + 1);
-        if (directory) {
-            //we want sync to the parent directory so that this doesn't nest the directory
-            relativePath = relativePath.substring(0, relativePath.lastIndexOf('/'));
-        }
-        const command = base.join(' ') + ' cp ' + file + ' ' + namespace + '/$POD:' + sync.to + '/' + relativePath;
-        await this.runCommand(sync, command, file, true);
-    }
-    async runCommand(sync, command, file, remote = false, subCommand = false) {
-        let status = new KubycatCommandStatus(0);
-        try {
-            if (remote) {
-                //Runs a command on all the pods
-                const pods = await this.getKubernetesPods(sync);
-                this.log(sync, ` - running on all ${pods.length} pods`);
-                for (const pod of pods) {
-                    const remoteCommand = command.replace(/\$POD/g, pod);
-                    status = await this.runCommand(sync, remoteCommand, file, false, true);
-                }
+            if (status === KubycatFileStatus.Deleted) {
+                yield this.deleteFile(sync, file);
             }
             else {
-                this.log(sync, ` - ${command}`);
-                //Runs the command locally
-                const child = spawn(command, {
-                    shell: true,
-                    stdio: 'pipe',
-                    env: {
-                        ...process.env,
+                yield this.updateFile(sync, file, status === KubycatFileStatus.Directory_Modified);
+            }
+            if (sync.postLocal) {
+                if (sync.postLocal == 'kubycat::exit') {
+                    this.stop();
+                    exit(0);
+                }
+                const localCommand = sync.postLocal.replace('${synced_file}', file);
+                yield this.runCommand(sync, localCommand, file, false);
+            }
+            if (sync.postRemote) {
+                const remoteCommand = sync.postRemote.replace('${synced_file}', file);
+                yield this.runCommand(sync, remoteCommand, file, true);
+            }
+        });
+    }
+    deleteFile(sync, file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const base = this.getKubernetesBaseCommand(sync);
+            const relativePath = file.substring(sync.base.length + 1);
+            const command = base.join(' ') + ' exec $POD -- ' + sync.shell + ' -c "rm -Rf ' + sync.to + '/' + relativePath + '"';
+            yield this.runCommand(sync, command, file, true);
+        });
+    }
+    updateFile(sync, file, directory) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const base = this.getKubernetesBaseCommand(sync);
+            const namespace = sync.namespace;
+            let relativePath = file.substring(sync.base.length + 1);
+            if (directory) {
+                //we want sync to the parent directory so that this doesn't nest the directory
+                relativePath = relativePath.substring(0, relativePath.lastIndexOf('/'));
+            }
+            const command = base.join(' ') + ' cp ' + file + ' ' + namespace + '/$POD:' + sync.to + '/' + relativePath;
+            yield this.runCommand(sync, command, file, true);
+        });
+    }
+    runCommand(sync, command, file, remote = false, subCommand = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let status = new KubycatCommandStatus(0);
+            try {
+                if (remote) {
+                    //Runs a command on all the pods
+                    const pods = yield this.getKubernetesPods(sync);
+                    this.log(sync, ` - running on all ${pods.length} pods`);
+                    for (const pod of pods) {
+                        const remoteCommand = command.replace(/\$POD/g, pod);
+                        status = yield this.runCommand(sync, remoteCommand, file, false, true);
                     }
-                });
-                status = await new Promise((resolve) => {
-                    let output = [];
-                    let error = [];
-                    child.stdout.setEncoding('utf8');
-                    child.stdout.on('data', (data) => {
-                        output.push(data.toString());
+                }
+                else {
+                    this.log(sync, ` - ${command}`);
+                    //Runs the command locally
+                    const child = spawn(command, {
+                        shell: true,
+                        stdio: 'pipe',
+                        env: Object.assign({}, process.env)
                     });
-                    child.stderr.setEncoding('utf8');
-                    child.stderr.on('data', (data) => {
-                        error.push(data.toString());
+                    status = yield new Promise((resolve) => {
+                        let output = [];
+                        let error = [];
+                        child.stdout.setEncoding('utf8');
+                        child.stdout.on('data', (data) => {
+                            output.push(data.toString());
+                        });
+                        child.stderr.setEncoding('utf8');
+                        child.stderr.on('data', (data) => {
+                            error.push(data.toString());
+                        });
+                        child.on('exit', (code) => {
+                            if (code === 0) {
+                                resolve(new KubycatCommandStatus(code, output, error));
+                            }
+                            else {
+                                resolve(new KubycatCommandStatus(code || 1, output, error));
+                            }
+                        });
                     });
-                    child.on('exit', (code) => {
-                        if (code === 0) {
-                            resolve(new KubycatCommandStatus(code, output, error));
-                        }
-                        else {
-                            resolve(new KubycatCommandStatus(code || 1, output, error));
-                        }
-                    });
-                });
-                if (status.code !== 0) {
+                    if (status.code !== 0) {
+                        throw status;
+                    }
+                }
+            }
+            catch (e) {
+                //@ts-ignore
+                status = e;
+                if (subCommand) {
                     throw status;
                 }
+                else {
+                    yield this.handleError(sync, status);
+                }
             }
-        }
-        catch (e) {
-            //@ts-ignore
-            status = e;
-            if (subCommand) {
-                throw status;
+            if (!subCommand && status.code == 0) {
+                this.log(sync, chalk.green(` - success`));
             }
-            else {
-                await this.handleError(sync, status);
-            }
-        }
-        if (!subCommand && status.code == 0) {
-            //@ts-ignore
-            this.log(sync, (await importChalk()).green(` - success`));
-        }
-        return status;
+            return status;
+        });
     }
     getKubernetesBaseCommand(sync) {
         const baseCommand = ['kubectl'];
@@ -291,59 +303,62 @@ class Kubycat {
         baseCommand.push('--namespace', sync.namespace);
         return baseCommand;
     }
-    async getKubernetesPods(sync) {
-        if (sync.podLabel && sync.cachePods && sync.pods !== null) {
-            return sync.pods;
-        }
-        const baseCommand = this.getKubernetesBaseCommand(sync);
-        if (sync.pod) {
-            return [sync.pod];
-        }
-        else {
-            const command = [...baseCommand, 'get', 'pods', '-l', sync.podLabel, '-o', 'custom-columns=NAME:metadata.name', '--no-headers'];
-            const commandStatus = await this.runCommand(sync, command.join(' '), '', false, true);
-            const pods = commandStatus.stdout;
-            if (sync.podLabel && sync.cachePods) {
-                sync.pods = pods;
+    getKubernetesPods(sync) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (sync.podLabel && sync.cachePods && sync.pods !== null) {
+                return sync.pods;
             }
-            return pods;
-        }
+            const baseCommand = this.getKubernetesBaseCommand(sync);
+            if (sync.pod) {
+                return [sync.pod];
+            }
+            else {
+                const command = [...baseCommand, 'get', 'pods', '-l', sync.podLabel, '-o', 'custom-columns=NAME:metadata.name', '--no-headers'];
+                const commandStatus = yield this.runCommand(sync, command.join(' '), '', false, true);
+                const pods = commandStatus.stdout;
+                if (sync.podLabel && sync.cachePods) {
+                    sync.pods = pods;
+                }
+                return pods;
+            }
+        });
     }
-    async handleError(sync, commandStatus) {
-        //@ts-ignore
-        this.log(sync, (await importChalk()).red(` - error:`));
-        this.log(sync, ' ---------------------------------------');
-        for (const line of commandStatus.stdout) {
-            this.log(sync, ' - ' + line);
-        }
-        for (const line of commandStatus.stderr) {
-            this.log(sync, ' - ' + line);
-        }
-        this.log(sync, ' ---------------------------------------');
-        if (sync.notify) {
-            //send desktop notification
-            notifier.notify({
-                title: 'Kubycat Error',
-                message: commandStatus.stderr.pop() || 'Unknown error (status code ' + commandStatus.code + ')',
-                type: 'error',
-            });
-        }
-        //if we are exiting, wait a second to allow the notification to be seen
-        switch (sync.onError) {
-            case 'ignore':
-                return;
-            case 'reload':
-                this.log(sync, ' - reloading (service-mode only)...');
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                exit(0);
-            case 'exit':
-                this.log(sync, ' - exiting with code ' + commandStatus.code + '...');
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                exit(commandStatus.code);
-            case 'throw':
-            default:
-                throw commandStatus;
-        }
+    handleError(sync, commandStatus) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.log(sync, chalk.red(` - error:`));
+            this.log(sync, ' ---------------------------------------');
+            for (const line of commandStatus.stdout) {
+                this.log(sync, ' - ' + line);
+            }
+            for (const line of commandStatus.stderr) {
+                this.log(sync, ' - ' + line);
+            }
+            this.log(sync, ' ---------------------------------------');
+            if (sync.notify) {
+                //send desktop notification
+                notifier.notify({
+                    title: 'Kubycat Error',
+                    message: commandStatus.stderr.pop() || 'Unknown error (status code ' + commandStatus.code + ')',
+                    type: 'error',
+                });
+            }
+            //if we are exiting, wait a second to allow the notification to be seen
+            switch (sync.onError) {
+                case 'ignore':
+                    return;
+                case 'reload':
+                    this.log(sync, ' - reloading (service-mode only)...');
+                    yield new Promise(resolve => setTimeout(resolve, 1000));
+                    exit(0);
+                case 'exit':
+                    this.log(sync, ' - exiting with code ' + commandStatus.code + '...');
+                    yield new Promise(resolve => setTimeout(resolve, 1000));
+                    exit(commandStatus.code);
+                case 'throw':
+                default:
+                    throw commandStatus;
+            }
+        });
     }
     log(sync, message) {
         if (sync.showLogs) {
