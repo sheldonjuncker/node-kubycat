@@ -1,6 +1,6 @@
 {
   "name": "kubycat",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A small library for the watching and automated syncing of files into a local or remote Kubernetes cluster..",
   "type": "module",
   "main": "dist/index.js",
@@ -36,7 +36,7 @@
   "bugs": {
     "url": "https://github.com/sheldonjuncker/node-kubycat/issues"
   },
-  "homepage": "https://github.com/sheldonjuncker/node-kubycat",
+  "homepage": "https://www.kubycat.info",
   "devDependencies": {
     "@types/node": "^18.15.3",
     "@types/node-notifier": "^8.0.2",
