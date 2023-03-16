@@ -143,17 +143,17 @@ class Kubycat {
             if (!sync) {
                 if (excludedSync) {
                     //@ts-ignore
-                    this.log(excludedSync, (yield importChalk).blue(`sync\t${file}`));
+                    this.log(excludedSync, (yield importChalk()).blue(`sync\t${file}`));
                     //@ts-ignore
-                    this.log(excludedSync, (yield importChalk).yellow(` - excluded`));
+                    this.log(excludedSync, (yield importChalk()).yellow(` - excluded`));
                 }
                 return;
             }
             else {
                 //@ts-ignore
-                this.log(sync, (yield importChalk).blue(`sync\t${file}`));
+                this.log(sync, (yield importChalk()).blue(`sync\t${file}`));
                 //@ts-ignore
-                this.log(sync, (yield importChalk).green(` - sync=${sync.name}`));
+                this.log(sync, (yield importChalk()).green(` - sync=${sync.name}`));
             }
             return yield this.runSync(sync, file);
         });
@@ -326,7 +326,7 @@ class Kubycat {
             }
             if (!subCommand && status.code == 0) {
                 //@ts-ignore
-                this.log(sync, (yield importChalk).green(` - success`));
+                this.log(sync, (yield importChalk()).green(` - success`));
             }
             return status;
         });
@@ -367,7 +367,7 @@ class Kubycat {
     handleError(sync, commandStatus) {
         return __awaiter(this, void 0, void 0, function* () {
             //@ts-ignore
-            this.log(sync, (yield importChalk).red(` - error:`));
+            this.log(sync, (yield importChalk()).red(` - error:`));
             this.log(sync, ' ---------------------------------------');
             for (const line of commandStatus.stdout) {
                 this.log(sync, ' - ' + line);
