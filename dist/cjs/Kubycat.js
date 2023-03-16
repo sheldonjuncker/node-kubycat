@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -7,14 +8,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import fs from 'fs';
-import crypto from 'crypto';
-import { spawn } from 'child_process';
-import KubycatFileStatus from "./KubycatFileStatus.js";
-import KubycatCommandStatus from "./KubycatCommandStatus.js";
-import { exit } from 'node:process';
-import notifier from 'node-notifier';
-import chalk from 'chalk';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = __importDefault(require("fs"));
+const crypto_1 = __importDefault(require("crypto"));
+const child_process_1 = require("child_process");
+const KubycatFileStatus_js_1 = __importDefault(require("./KubycatFileStatus.js"));
+const KubycatCommandStatus_js_1 = __importDefault(require("./KubycatCommandStatus.js"));
+const node_process_1 = require("node:process");
+const node_notifier_1 = __importDefault(require("node-notifier"));
+const chalk_1 = __importDefault(require("chalk"));
 class Kubycat {
     constructor(config) {
         this._fileCache = {};
@@ -36,7 +41,7 @@ class Kubycat {
                 continue;
             }
             for (const from of sync.from) {
-                const watcher = fs.watch(sync.base + '/' + from, { recursive: true }, (_event, file) => __awaiter(this, void 0, void 0, function* () {
+                const watcher = fs_1.default.watch(sync.base + '/' + from, { recursive: true }, (_event, file) => __awaiter(this, void 0, void 0, function* () {
                     if (file) {
                         file = file.replace(/\\/g, '/');
                         const absolutePath = sync.base + '/' + from + '/' + file;
@@ -82,15 +87,19 @@ class Kubycat {
                 if (!s.enabled) {
                     return false;
                 }
+                //Must be within the base path
                 if (!file.startsWith(s.base)) {
                     return false;
                 }
                 const relativeFile = file.substring(s.base.length + 1);
+                //Must be within one of the from paths (recursive)
                 if (!s.from.some(f => relativeFile.startsWith(f))) {
                     return false;
                 }
+                //Must not be in the excluding regexes
                 if (s.excluding.some(e => file.match(e))) {
                     excludedSync = s;
+                    //Unless it is in the including regexes
                     if (!s.including.some(i => file.match(i))) {
                         return false;
                     }
@@ -102,14 +111,14 @@ class Kubycat {
             });
             if (!sync) {
                 if (excludedSync) {
-                    this.log(excludedSync, chalk.blue(`sync\t${file}`));
-                    this.log(excludedSync, chalk.yellow(` - excluded`));
+                    this.log(excludedSync, chalk_1.default.blue(`sync\t${file}`));
+                    this.log(excludedSync, chalk_1.default.yellow(` - excluded`));
                 }
                 return;
             }
             else {
-                this.log(sync, chalk.blue(`sync\t${file}`));
-                this.log(sync, chalk.green(` - sync=${sync.name}`));
+                this.log(sync, chalk_1.default.blue(`sync\t${file}`));
+                this.log(sync, chalk_1.default.green(` - sync=${sync.name}`));
             }
             return yield this.runSync(sync, file);
         });
@@ -119,6 +128,7 @@ class Kubycat {
             if (!this._syncing) {
                 return;
             }
+            //get the current time in milliseconds
             const now = new Date().getTime();
             if (this._syncQueue.length > 0) {
                 const file = this._syncQueue.shift();
@@ -126,7 +136,9 @@ class Kubycat {
                     yield this.handleSync(file);
                 }
             }
+            //get the current time in milliseconds
             const end = new Date().getTime();
+            //wait up to interval milliseconds before returning a promise that runs the function again
             const timeout = Math.max(0, interval - (end - now));
             return new Promise(resolve => {
                 setTimeout(() => __awaiter(this, void 0, void 0, function* () {
@@ -137,58 +149,59 @@ class Kubycat {
     }
     getFileHash(file) {
         try {
-            const stat = fs.statSync(file);
+            const stat = fs_1.default.statSync(file);
             if (!stat.isDirectory()) {
-                const contents = fs.readFileSync(file);
-                return stat.ctime.toString() + ':' + crypto.createHash('md5').update(contents).digest('hex');
+                const contents = fs_1.default.readFileSync(file);
+                return stat.ctime.toString() + ':' + crypto_1.default.createHash('md5').update(contents).digest('hex');
             }
             else {
-                return KubycatFileStatus.Directory_Modified;
+                return KubycatFileStatus_js_1.default.Directory_Modified;
             }
         }
         catch (e) {
-            return KubycatFileStatus.Deleted;
+            return KubycatFileStatus_js_1.default.Deleted;
         }
     }
     getFileStatus(file) {
         const hash = this.getFileHash(file);
         if (this._fileCache[file] === hash) {
-            return KubycatFileStatus.Unchanged;
+            return KubycatFileStatus_js_1.default.Unchanged;
         }
         const oldHash = this._fileCache[file];
         this._fileCache[file] = hash;
-        if (hash === KubycatFileStatus.Deleted) {
-            return KubycatFileStatus.Deleted;
+        if (hash === KubycatFileStatus_js_1.default.Deleted) {
+            return KubycatFileStatus_js_1.default.Deleted;
         }
-        else if (hash === KubycatFileStatus.Directory_Modified) {
-            if (!oldHash || oldHash === KubycatFileStatus.Deleted) {
-                return KubycatFileStatus.Directory_Modified;
+        else if (hash === KubycatFileStatus_js_1.default.Directory_Modified) {
+            if (!oldHash || oldHash === KubycatFileStatus_js_1.default.Deleted) {
+                //only sync if the directory is new or was previously deleted
+                return KubycatFileStatus_js_1.default.Directory_Modified;
             }
             else {
-                return KubycatFileStatus.Unchanged;
+                return KubycatFileStatus_js_1.default.Unchanged;
             }
         }
         else {
-            return KubycatFileStatus.Modified;
+            return KubycatFileStatus_js_1.default.Modified;
         }
     }
     runSync(sync, file) {
         return __awaiter(this, void 0, void 0, function* () {
             const status = this.getFileStatus(file);
             this.log(sync, ` - status=${status}`);
-            if (status === KubycatFileStatus.Unchanged) {
+            if (status === KubycatFileStatus_js_1.default.Unchanged) {
                 return;
             }
-            if (status === KubycatFileStatus.Deleted) {
+            if (status === KubycatFileStatus_js_1.default.Deleted) {
                 yield this.deleteFile(sync, file);
             }
             else {
-                yield this.updateFile(sync, file, status === KubycatFileStatus.Directory_Modified);
+                yield this.updateFile(sync, file, status === KubycatFileStatus_js_1.default.Directory_Modified);
             }
             if (sync.postLocal) {
                 if (sync.postLocal == 'kubycat::exit') {
                     this.stop();
-                    exit(0);
+                    (0, node_process_1.exit)(0);
                 }
                 const localCommand = sync.postLocal.replace('${synced_file}', file);
                 yield this.runCommand(sync, localCommand, file, false);
@@ -213,6 +226,7 @@ class Kubycat {
             const namespace = sync.namespace;
             let relativePath = file.substring(sync.base.length + 1);
             if (directory) {
+                //we want sync to the parent directory so that this doesn't nest the directory
                 relativePath = relativePath.substring(0, relativePath.lastIndexOf('/'));
             }
             const command = base.join(' ') + ' cp ' + file + ' ' + namespace + '/$POD:' + sync.to + '/' + relativePath;
@@ -221,9 +235,10 @@ class Kubycat {
     }
     runCommand(sync, command, file, remote = false, subCommand = false) {
         return __awaiter(this, void 0, void 0, function* () {
-            let status = new KubycatCommandStatus(0);
+            let status = new KubycatCommandStatus_js_1.default(0);
             try {
                 if (remote) {
+                    //Runs a command on all the pods
                     const pods = yield this.getKubernetesPods(sync);
                     this.log(sync, ` - running on all ${pods.length} pods`);
                     for (const pod of pods) {
@@ -233,7 +248,8 @@ class Kubycat {
                 }
                 else {
                     this.log(sync, ` - ${command}`);
-                    const child = spawn(command, {
+                    //Runs the command locally
+                    const child = (0, child_process_1.spawn)(command, {
                         shell: true,
                         stdio: 'pipe',
                         env: Object.assign({}, process.env)
@@ -251,10 +267,10 @@ class Kubycat {
                         });
                         child.on('exit', (code) => {
                             if (code === 0) {
-                                resolve(new KubycatCommandStatus(code, output, error));
+                                resolve(new KubycatCommandStatus_js_1.default(code, output, error));
                             }
                             else {
-                                resolve(new KubycatCommandStatus(code || 1, output, error));
+                                resolve(new KubycatCommandStatus_js_1.default(code || 1, output, error));
                             }
                         });
                     });
@@ -264,6 +280,7 @@ class Kubycat {
                 }
             }
             catch (e) {
+                //@ts-ignore
                 status = e;
                 if (subCommand) {
                     throw status;
@@ -273,7 +290,7 @@ class Kubycat {
                 }
             }
             if (!subCommand && status.code == 0) {
-                this.log(sync, chalk.green(` - success`));
+                this.log(sync, chalk_1.default.green(` - success`));
             }
             return status;
         });
@@ -313,7 +330,7 @@ class Kubycat {
     }
     handleError(sync, commandStatus) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.log(sync, chalk.red(` - error:`));
+            this.log(sync, chalk_1.default.red(` - error:`));
             this.log(sync, ' ---------------------------------------');
             for (const line of commandStatus.stdout) {
                 this.log(sync, ' - ' + line);
@@ -323,23 +340,25 @@ class Kubycat {
             }
             this.log(sync, ' ---------------------------------------');
             if (sync.notify) {
-                notifier.notify({
+                //send desktop notification
+                node_notifier_1.default.notify({
                     title: 'Kubycat Error',
                     message: commandStatus.stderr.pop() || 'Unknown error (status code ' + commandStatus.code + ')',
                     type: 'error',
                 });
             }
+            //if we are exiting, wait a second to allow the notification to be seen
             switch (sync.onError) {
                 case 'ignore':
                     return;
                 case 'reload':
                     this.log(sync, ' - reloading (service-mode only)...');
                     yield new Promise(resolve => setTimeout(resolve, 1000));
-                    exit(0);
+                    (0, node_process_1.exit)(0);
                 case 'exit':
                     this.log(sync, ' - exiting with code ' + commandStatus.code + '...');
                     yield new Promise(resolve => setTimeout(resolve, 1000));
-                    exit(commandStatus.code);
+                    (0, node_process_1.exit)(commandStatus.code);
                 case 'throw':
                 default:
                     throw commandStatus;
@@ -352,5 +371,4 @@ class Kubycat {
         }
     }
 }
-export default Kubycat;
-//# sourceMappingURL=Kubycat.js.map
+exports.default = Kubycat;

@@ -88,4 +88,3 @@ class KubycatConfig {
     }
 }
 export default KubycatConfig;
-//# sourceMappingURL=KubycatConfig.js.map

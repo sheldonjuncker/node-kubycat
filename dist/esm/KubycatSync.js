@@ -1,245 +1,189 @@
 import * as path from "path";
-
 class KubycatSync {
-    private _name: string;
-    private _enabled: boolean = true;
-    private _base: string;
-    private _namespace: string = '';
-    private _context: string|null = null;
-    private _config: string|null = null;
-    private _from: string[] = [];
-    private _to: string|null = null;
-    private _excluding: string[] = [];
-    private _including: string[] = [];
-    private _pod: string|null = null;
-    private _podLabel: string|null = null;
-    private _cachePods: boolean = true;
-    private _pods: string[]|null = null;
-    private _shell: string|null = null;
-    private _notify: boolean = false;
-    private _onError: string|null = null;
-    private _postLocal: string|null = null;
-    private _postRemote: string|null = null;
-    private _showLogs: boolean = true;
-
-    constructor(name: string, base: string, from: string[] = [], to: string|null = null) {
+    constructor(name, base, from = [], to = null) {
+        this._enabled = true;
+        this._namespace = '';
+        this._context = null;
+        this._config = null;
+        this._from = [];
+        this._to = null;
+        this._excluding = [];
+        this._including = [];
+        this._pod = null;
+        this._podLabel = null;
+        this._cachePods = true;
+        this._pods = null;
+        this._shell = null;
+        this._notify = false;
+        this._onError = null;
+        this._postLocal = null;
+        this._postRemote = null;
+        this._showLogs = true;
         this._name = name;
         this._base = base;
         this._from = from;
         this._to = to;
     }
-
-    get showLogs(): boolean {
+    get showLogs() {
         return this._showLogs;
     }
-
-    set showLogs(value: boolean) {
+    set showLogs(value) {
         this._showLogs = value;
     }
-
-    get pods(): string[]|null {
+    get pods() {
         return this._pods;
     }
-
-    set pods(value: string[]|null) {
+    set pods(value) {
         this._pods = value;
     }
-
-    get cachePods(): boolean {
+    get cachePods() {
         return this._cachePods;
     }
-
-    set cachePods(value: boolean) {
+    set cachePods(value) {
         this._cachePods = value;
     }
-    get enabled(): boolean {
+    get enabled() {
         return this._enabled;
     }
-
-    set enabled(value: boolean) {
+    set enabled(value) {
         this._enabled = value;
     }
-
-    get name(): string {
+    get name() {
         return this._name;
     }
-
-    set name(value: string) {
+    set name(value) {
         this._name = value;
     }
-
-    get base(): string {
+    get base() {
         return this._base;
     }
-
-    set base(value: string) {
+    set base(value) {
         this._base = value;
     }
-
-    get namespace(): string {
+    get namespace() {
         return this._namespace;
     }
-
-    set namespace(value: string) {
+    set namespace(value) {
         this._namespace = value;
     }
-
-    get context(): string | null {
+    get context() {
         return this._context;
     }
-
-    set context(value: string | null) {
+    set context(value) {
         this._context = value;
     }
-
-    get config(): string | null {
+    get config() {
         return this._config;
     }
-
-    set config(value: string | null) {
+    set config(value) {
         this._config = value;
     }
-
-    get from(): string[] {
+    get from() {
         return this._from;
     }
-
-    set from(value: string[]) {
+    set from(value) {
         this._from = value;
     }
-
-    get to(): string | null {
+    get to() {
         return this._to;
     }
-
-    set to(value: string | null) {
+    set to(value) {
         this._to = value;
     }
-
-    get excluding(): string[] {
+    get excluding() {
         return this._excluding;
     }
-
-    set excluding(value: string[]) {
+    set excluding(value) {
         this._excluding = value;
     }
-
-    get including(): string[] {
+    get including() {
         return this._including;
     }
-
-    set including(value: string[]) {
+    set including(value) {
         this._including = value;
     }
-
-    get pod(): string | null {
+    get pod() {
         return this._pod;
     }
-
-    set pod(value: string | null) {
+    set pod(value) {
         this._pod = value;
     }
-
-    get podLabel(): string | null {
+    get podLabel() {
         return this._podLabel;
     }
-
-    set podLabel(value: string | null) {
+    set podLabel(value) {
         this._podLabel = value;
     }
-
-    get shell(): string | null {
+    get shell() {
         return this._shell;
     }
-
-    set shell(value: string | null) {
+    set shell(value) {
         this._shell = value;
     }
-
-    get notify(): boolean {
+    get notify() {
         return this._notify;
     }
-
-    set notify(value: boolean) {
+    set notify(value) {
         this._notify = value;
     }
-
-    get onError(): string | null {
+    get onError() {
         return this._onError;
     }
-
-    set onError(value: string | null) {
+    set onError(value) {
         this._onError = value;
     }
-
-    get postLocal(): string | null {
+    get postLocal() {
         return this._postLocal;
     }
-
-    set postLocal(value: string | null) {
+    set postLocal(value) {
         this._postLocal = value;
     }
-
-    get postRemote(): string | null {
+    get postRemote() {
         return this._postRemote;
     }
-
-    set postRemote(value: string | null) {
+    set postRemote(value) {
         this._postRemote = value;
     }
-
-    addFrom(from: string) {
+    addFrom(from) {
         this._from.push(from);
     }
-
-    removeFrom(from: string) {
+    removeFrom(from) {
         this._from = this._from.filter(f => f !== from);
     }
-
     clearFrom() {
         this._from = [];
     }
-
-    addExclusion(excluding: string) {
+    addExclusion(excluding) {
         this._excluding.push(excluding);
     }
-
-    removeExclusion(excluding: string) {
+    removeExclusion(excluding) {
         this._excluding = this._excluding.filter(e => e !== excluding);
     }
-
     clearExclusions() {
         this._excluding = [];
     }
-
-    addInclusion(including: string) {
+    addInclusion(including) {
         this._including.push(including);
     }
-
-    removeInclusion(including: string) {
+    removeInclusion(including) {
         this._including = this._including.filter(i => i !== including);
     }
-
     clearInclusions() {
         this._including = [];
     }
-
     validate() {
         if (!this._enabled) {
             return;
         }
-
         if (!this._name) {
             throw new Error('sync.name is required');
         }
-
         if (!this._base) {
             throw new Error('sync.base path is required');
         }
         if (!path.isAbsolute(this._base)) {
             throw new Error('sync.base path must be absolute');
         }
-
         if (this._from.length === 0) {
             throw new Error('sync.from requires at least one path');
         }
@@ -248,29 +192,23 @@ class KubycatSync {
                 throw new Error('sync.from paths must be relative');
             }
         });
-
         if (this._to !== null) {
             if (!path.isAbsolute(this._to)) {
                 throw new Error('sync.to path must be absolute if set');
             }
-
             if (this._pod && this._podLabel) {
                 throw new Error('sync.pod and sync.pod-label are mutually exclusive');
             }
-
             if (!this._pod && !this._podLabel) {
                 throw new Error('sync.pod or sync.pod-label is required');
             }
-
             if (!this._shell) {
                 throw new Error('sync.shell is required');
             }
-
             if (!this._namespace) {
                 throw new Error('sync.namespace (or kubycat.namespace) is required');
             }
         }
     }
 }
-
 export default KubycatSync;

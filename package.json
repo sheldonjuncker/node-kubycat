@@ -3,8 +3,9 @@
   "version": "1.0.4",
   "description": "A small library for the watching and automated syncing of files into a local or remote Kubernetes cluster..",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "files": [
     "dist",
     "README.md"
@@ -13,10 +14,12 @@
     "kubycat": "dist/KubycatCli.js"
   },
   "scripts": {
-    "build": "npm run clean && tsc -d",
+    "build": "npm run clean && npm run tsc",
+    "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
     "clean": "rimraf dist",
     "lint": "tslint -c tslint.json",
-    "test": "ava"
+    "test": "ava",
+    "prepublish": "npm run build"
   },
   "engines": {
     "node": "14 || 16 || 17 || 18 || 19"

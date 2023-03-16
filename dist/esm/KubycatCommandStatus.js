@@ -30,4 +30,3 @@ class KubycatCommandStatus {
     }
 }
 export default KubycatCommandStatus;
-//# sourceMappingURL=KubycatCommandStatus.js.map

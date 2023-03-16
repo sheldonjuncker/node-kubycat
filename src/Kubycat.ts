@@ -285,6 +285,7 @@ class Kubycat {
                 }
             }
         } catch (e) {
+            //@ts-ignore
             status = e;
             if (subCommand) {
                 throw status;

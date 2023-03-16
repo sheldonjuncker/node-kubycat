@@ -1,42 +1,15 @@
 {
     "compilerOptions": {
-        "experimentalDecorators": true,
-        "lib": [
-            "ESNext",
-            "dom"
-        ],
-        "module": "ESNext",
-        "outDir": "dist",
-        "removeComments": true,
-        "target": "ES6",
-        "declaration": true,
-        // Module resolution
-        "baseUrl": "./dist",
-        "esModuleInterop": true,
         "moduleResolution": "node",
-        "paths": {},
-
-        // Source Map
-        "sourceMap": true,
-        "sourceRoot": "/",
-
-        // Strict Checks
-        "alwaysStrict": true,
-        "allowUnreachableCode": false,
-        "noImplicitAny": true,
-        "strictNullChecks": true,
-
-        // Linter Checks
-        "noImplicitReturns": true,
-        "noUncheckedIndexedAccess": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true
+        "target": "ES2015",
+        "module": "ESNext",
+        "strict": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "./dist/esm",
+        "declaration": true,
     },
     "include": [
-        "./**/*.ts",
-        "index.ts"
-    ],
-    "exclude": [
-        "node_modules/**/*"
+        "./src"
     ]
 }
