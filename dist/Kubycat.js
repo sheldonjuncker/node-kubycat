@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import fs from 'fs';
 import crypto from 'crypto';
 import { spawn } from 'child_process';
-import FileStatus from "./FileStatus.js";
-import CommandStatus from "./CommandStatus.js";
+import KubycatFileStatus from "./KubycatFileStatus.js";
+import KubycatCommandStatus from "./KubycatCommandStatus.js";
 import { exit } from 'node:process';
 import notifier from 'node-notifier';
 import chalk from 'chalk';
@@ -143,47 +143,47 @@ class Kubycat {
                 return stat.ctime.toString() + ':' + crypto.createHash('md5').update(contents).digest('hex');
             }
             else {
-                return FileStatus.Directory_Modified;
+                return KubycatFileStatus.Directory_Modified;
             }
         }
         catch (e) {
-            return FileStatus.Deleted;
+            return KubycatFileStatus.Deleted;
         }
     }
     getFileStatus(file) {
         const hash = this.getFileHash(file);
         if (this._fileCache[file] === hash) {
-            return FileStatus.Unchanged;
+            return KubycatFileStatus.Unchanged;
         }
         const oldHash = this._fileCache[file];
         this._fileCache[file] = hash;
-        if (hash === FileStatus.Deleted) {
-            return FileStatus.Deleted;
+        if (hash === KubycatFileStatus.Deleted) {
+            return KubycatFileStatus.Deleted;
         }
-        else if (hash === FileStatus.Directory_Modified) {
-            if (!oldHash || oldHash === FileStatus.Deleted) {
-                return FileStatus.Directory_Modified;
+        else if (hash === KubycatFileStatus.Directory_Modified) {
+            if (!oldHash || oldHash === KubycatFileStatus.Deleted) {
+                return KubycatFileStatus.Directory_Modified;
             }
             else {
-                return FileStatus.Unchanged;
+                return KubycatFileStatus.Unchanged;
             }
         }
         else {
-            return FileStatus.Modified;
+            return KubycatFileStatus.Modified;
         }
     }
     runSync(sync, file) {
         return __awaiter(this, void 0, void 0, function* () {
             const status = this.getFileStatus(file);
             this.log(sync, ` - status=${status}`);
-            if (status === FileStatus.Unchanged) {
+            if (status === KubycatFileStatus.Unchanged) {
                 return;
             }
-            if (status === FileStatus.Deleted) {
+            if (status === KubycatFileStatus.Deleted) {
                 yield this.deleteFile(sync, file);
             }
             else {
-                yield this.updateFile(sync, file, status === FileStatus.Directory_Modified);
+                yield this.updateFile(sync, file, status === KubycatFileStatus.Directory_Modified);
             }
             if (sync.postLocal) {
                 if (sync.postLocal == 'kubycat::exit') {
@@ -221,7 +221,7 @@ class Kubycat {
     }
     runCommand(sync, command, file, remote = false, subCommand = false) {
         return __awaiter(this, void 0, void 0, function* () {
-            let status = new CommandStatus(0);
+            let status = new KubycatCommandStatus(0);
             try {
                 if (remote) {
                     const pods = yield this.getKubernetesPods(sync);
@@ -251,10 +251,10 @@ class Kubycat {
                         });
                         child.on('exit', (code) => {
                             if (code === 0) {
-                                resolve(new CommandStatus(code, output, error));
+                                resolve(new KubycatCommandStatus(code, output, error));
                             }
                             else {
-                                resolve(new CommandStatus(code || 1, output, error));
+                                resolve(new KubycatCommandStatus(code || 1, output, error));
                             }
                         });
                     });

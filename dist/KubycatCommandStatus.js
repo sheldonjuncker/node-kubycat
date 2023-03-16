@@ -1,4 +1,4 @@
-class CommandStatus {
+class KubycatCommandStatus {
     constructor(status, stdout = [], stderr = []) {
         this._code = status;
         this._stdout = stdout;
@@ -29,5 +29,5 @@ class CommandStatus {
         this._stderr.push(line);
     }
 }
-export default CommandStatus;
-//# sourceMappingURL=CommandStatus.js.map
+export default KubycatCommandStatus;
+//# sourceMappingURL=KubycatCommandStatus.js.map

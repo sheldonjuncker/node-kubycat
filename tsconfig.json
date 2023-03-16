@@ -32,7 +32,8 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true
     },
-    "include": ["./**/*.ts",
+    "include": [
+        "./**/*.ts",
         "index.ts"
     ],
     "exclude": [

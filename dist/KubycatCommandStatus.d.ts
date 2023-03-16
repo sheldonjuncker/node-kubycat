@@ -1,4 +1,4 @@
-declare class CommandStatus {
+declare class KubycatCommandStatus {
     private _code;
     private _stdout;
     private _stderr;
@@ -12,4 +12,4 @@ declare class CommandStatus {
     addStdout(line: string): void;
     addStderr(line: string): void;
 }
-export default CommandStatus;
+export default KubycatCommandStatus;

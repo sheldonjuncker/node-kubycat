@@ -1,4 +1,4 @@
-class CommandStatus {
+class KubycatCommandStatus {
     private _code: number;
     private _stdout: string[];
     private _stderr: string[];
@@ -43,4 +43,4 @@ class CommandStatus {
     }
 }
 
-export default CommandStatus;
+export default KubycatCommandStatus;

@@ -3,8 +3,8 @@ import KubycatSync from "./KubycatSync.js";
 import fs from 'fs';
 import crypto from 'crypto';
 import {spawn} from 'child_process';
-import FileStatus from "./FileStatus.js";
-import CommandStatus from "./CommandStatus.js";
+import KubycatFileStatus from "./KubycatFileStatus.js";
+import KubycatCommandStatus from "./KubycatCommandStatus.js";
 import {exit} from 'node:process';
 import notifier from 'node-notifier';
 import chalk from 'chalk';
@@ -160,46 +160,46 @@ class Kubycat {
                 const contents = fs.readFileSync(file);
                 return stat.ctime.toString() + ':' + crypto.createHash('md5').update(contents).digest('hex');
             } else {
-                return FileStatus.Directory_Modified;
+                return KubycatFileStatus.Directory_Modified;
             }
         } catch (e) {
-            return FileStatus.Deleted;
+            return KubycatFileStatus.Deleted;
         }
     }
 
-    private getFileStatus(file: string): FileStatus {
+    private getFileStatus(file: string): KubycatFileStatus {
         const hash = this.getFileHash(file);
         if (this._fileCache[file] === hash) {
-            return FileStatus.Unchanged;
+            return KubycatFileStatus.Unchanged;
         }
         const oldHash = this._fileCache[file];
         this._fileCache[file] = hash;
-        if (hash === FileStatus.Deleted) {
-            return FileStatus.Deleted;
-        } else if(hash === FileStatus.Directory_Modified) {
-            if (!oldHash || oldHash === FileStatus.Deleted) {
+        if (hash === KubycatFileStatus.Deleted) {
+            return KubycatFileStatus.Deleted;
+        } else if(hash === KubycatFileStatus.Directory_Modified) {
+            if (!oldHash || oldHash === KubycatFileStatus.Deleted) {
                 //only sync if the directory is new or was previously deleted
-                return FileStatus.Directory_Modified;
+                return KubycatFileStatus.Directory_Modified;
             } else {
-                return FileStatus.Unchanged;
+                return KubycatFileStatus.Unchanged;
             }
 
         } else {
-            return FileStatus.Modified;
+            return KubycatFileStatus.Modified;
         }
     }
 
     private async runSync(sync: KubycatSync, file: string) {
         const status = this.getFileStatus(file);
         this.log(sync, ` - status=${status}`);
-        if (status === FileStatus.Unchanged) {
+        if (status === KubycatFileStatus.Unchanged) {
             return;
         }
 
-        if (status === FileStatus.Deleted) {
+        if (status === KubycatFileStatus.Deleted) {
             await this.deleteFile(sync, file);
         } else {
-            await this.updateFile(sync, file, status === FileStatus.Directory_Modified);
+            await this.updateFile(sync, file, status === KubycatFileStatus.Directory_Modified);
         }
 
         if (sync.postLocal) {
@@ -237,8 +237,8 @@ class Kubycat {
         await this.runCommand(sync, command, file, true);
     }
 
-    private async runCommand(sync: KubycatSync, command: string, file: string, remote: boolean = false, subCommand: boolean = false): Promise<CommandStatus> {
-        let status: CommandStatus = new CommandStatus(0);
+    private async runCommand(sync: KubycatSync, command: string, file: string, remote: boolean = false, subCommand: boolean = false): Promise<KubycatCommandStatus> {
+        let status: KubycatCommandStatus = new KubycatCommandStatus(0);
         try {
             if (remote) {
                 //Runs a command on all the pods
@@ -258,7 +258,7 @@ class Kubycat {
                         ...process.env,
                     }
                 });
-                status = await  new Promise<CommandStatus>((resolve) => {
+                status = await  new Promise<KubycatCommandStatus>((resolve) => {
                     let output: string[] = [];
                     let error: string[] = [];
 
@@ -274,9 +274,9 @@ class Kubycat {
 
                     child.on('exit', (code) => {
                         if (code === 0) {
-                            resolve(new CommandStatus(code, output, error));
+                            resolve(new KubycatCommandStatus(code, output, error));
                         } else {
-                            resolve(new CommandStatus(code || 1, output, error));
+                            resolve(new KubycatCommandStatus(code || 1, output, error));
                         }
                     });
                 });
@@ -334,7 +334,7 @@ class Kubycat {
         }
     }
 
-    private async handleError(sync: KubycatSync, commandStatus: CommandStatus): Promise<void> {
+    private async handleError(sync: KubycatSync, commandStatus: KubycatCommandStatus): Promise<void> {
         this.log(sync, chalk.red(` - error:`));
         this.log(sync, ' ---------------------------------------');
         for (const line of commandStatus.stdout) {
