@@ -41,10 +41,17 @@ class Kubycat {
                 continue;
             }
             for (const from of sync.from) {
+                const isFile = fs_1.default.statSync(sync.base + '/' + from).isFile();
                 const watcher = fs_1.default.watch(sync.base + '/' + from, { recursive: true }, (_event, file) => __awaiter(this, void 0, void 0, function* () {
                     if (file) {
                         file = file.replace(/\\/g, '/');
-                        const absolutePath = sync.base + '/' + from + '/' + file;
+                        let absolutePath;
+                        if (isFile) {
+                            absolutePath = sync.base + '/' + from;
+                        }
+                        else {
+                            absolutePath = sync.base + '/' + from + '/' + file;
+                        }
                         this._syncQueue.push(absolutePath);
                     }
                 }));

@@ -40,5 +40,5 @@ class KubycatCli {
         kubycat.start();
     }
 }
-KubycatCli.version = '1.1.1';
+KubycatCli.version = '1.1.6';
 KubycatCli.main(process.argv.slice(2));
