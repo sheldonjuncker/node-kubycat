@@ -273,12 +273,16 @@ class Kubycat {
 
                     child.stdout.setEncoding('utf8');
                     child.stdout.on('data', (data) => {
-                        output.push(data.toString());
+                        for (const line of data.toString().split(/(\r?\n)/g)) {
+                            output.push(line);
+                        }
                     });
 
                     child.stderr.setEncoding('utf8');
                     child.stderr.on('data', (data) => {
-                        error.push(data.toString());
+                        for (const line of data.toString().split(/(\r?\n)/g)) {
+                            error.push(line);
+                        }
                     });
 
                     child.on('exit', (code) => {
