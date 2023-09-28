@@ -19,9 +19,15 @@ declare class KubycatSync {
     private _postLocal;
     private _postRemote;
     private _showLogs;
+    private _syncOnStart;
+    private _buildCacheOnStart;
     constructor(name: string, base: string, from?: string[], to?: string | null);
     get showLogs(): boolean;
     set showLogs(value: boolean);
+    get syncOnStart(): boolean;
+    set syncOnStart(value: boolean);
+    get buildCacheOnStart(): boolean;
+    set buildCacheOnStart(value: boolean);
     get pods(): string[] | null;
     set pods(value: string[] | null);
     get cachePods(): boolean;

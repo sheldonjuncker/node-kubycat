@@ -48,6 +48,10 @@ kubycat:
       on-error: exit
       # Whether to show the logs for the sync
       show-logs: true
+      # Sync files on startup
+      sync-on-start: false
+      # Build file caches on startup to prevent unintentional syncing
+      build-cache-on-start: false
     - name: composer
       base: /home/johndoe/test
       namespace: other

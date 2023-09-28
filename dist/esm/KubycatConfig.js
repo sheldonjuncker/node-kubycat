@@ -52,7 +52,7 @@ class KubycatConfig {
         this._syncs = [];
     }
     static fromYaml(yaml) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f, _g;
         const config = YAML.parse(yaml);
         if (!config.kubycat) {
             throw new Error('invalid config file, missing kubycat section.');
@@ -77,9 +77,11 @@ class KubycatConfig {
             s.postLocal = sync['post-local'] || null;
             s.postRemote = sync['post-remote'] || null;
             s.showLogs = (_d = sync['show-logs']) !== null && _d !== void 0 ? _d : true;
+            s.syncOnStart = (_e = sync['sync-on-start']) !== null && _e !== void 0 ? _e : false;
+            s.buildCacheOnStart = (_f = sync['build-cache-on-start']) !== null && _f !== void 0 ? _f : false;
             syncs.push(s);
         }
-        return new KubycatConfig((_e = config.kubycat.interval) !== null && _e !== void 0 ? _e : 1000, config.kubycat.config, config.kubycat.context, config.kubycat.namespace, syncs);
+        return new KubycatConfig((_g = config.kubycat.interval) !== null && _g !== void 0 ? _g : 1000, config.kubycat.config, config.kubycat.context, config.kubycat.namespace, syncs);
     }
     static fromYamlFile(path) {
         const yaml = fs.readFileSync(path, 'utf8');

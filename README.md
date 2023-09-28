@@ -9,7 +9,7 @@ A small Node.js library for the watching and automated syncing of files into a l
 
 ```typescript
 const name = 'kubycat'
-let version = 1.1.6
+let version = 1.2.4
 const author = 'Sheldon Juncker <sheldon@dreamcloud.app>'
 const github = 'https://github.com/sheldonjuncker/node-kubycat'
 const license = 'MIT'
@@ -65,7 +65,7 @@ $ kubycat ./config.yaml
 ```
 
 ```typescript
-Kubycat version 1.1.6
+Kubycat version 1.2.4
 
 Reading from config file: config.yaml...
 {
@@ -197,6 +197,8 @@ kubycat:
       notify: true
       on-error: exit
       show-logs: true
+      sync-on-start: true
+      build-cache-on-start: true
     - name: composer
       enabled: false
       base: /home/johndoe/test/
@@ -419,6 +421,17 @@ This can also be used to have Kubycat watch its own configuration file and reloa
 Default: `true`
 
 The `kubycat.sync.show-logs` option specifies whether to show syncing logs. This can be disabled when running programmatically as a module.
+
+### kubycat.sync.sync-on-start
+Default: `false`
+
+The `kubycat.sync.sync-on-start` can be set to `true` which will cause Kubycat to sync all of the files within the sync's configuration to the Kubernetes cluster when it starts.
+
+### kubycat.sync.build-cache-on-start
+Default: `false`
+
+The `kubycat.sync.cache-on-start` can be set to `true` which will cause Kubycat to build file caches for all files it syncs so that it won't accidentally sync files which haven't really been changed. This can happen when IDEs or other programs write to files without actually changing them.
+
 
 ## Usage
 Kubycat can be used as a command-line tool or as a module.

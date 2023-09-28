@@ -19,6 +19,8 @@ class KubycatSync {
         this._postLocal = null;
         this._postRemote = null;
         this._showLogs = true;
+        this._syncOnStart = false;
+        this._buildCacheOnStart = false;
         this._name = name;
         this._base = base;
         this._from = from;
@@ -29,6 +31,18 @@ class KubycatSync {
     }
     set showLogs(value) {
         this._showLogs = value;
+    }
+    get syncOnStart() {
+        return this._syncOnStart;
+    }
+    set syncOnStart(value) {
+        this._syncOnStart = value;
+    }
+    get buildCacheOnStart() {
+        return this._buildCacheOnStart;
+    }
+    set buildCacheOnStart(value) {
+        this._buildCacheOnStart = value;
     }
     get pods() {
         return this._pods;

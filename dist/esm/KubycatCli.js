@@ -31,9 +31,9 @@ class KubycatCli {
             }
         }
         console.log('');
-        console.log('Watching for files to sync...\t\t\tCtrl+C to exit');
         kubycat.start();
+        console.log('Watching for files to sync...\t\t\tCtrl+C to exit');
     }
 }
-KubycatCli.version = '1.1.6';
+KubycatCli.version = '1.2.4';
 KubycatCli.main(process.argv.slice(2));

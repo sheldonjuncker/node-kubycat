@@ -42,6 +42,17 @@ class Kubycat {
             }
             for (const from of sync.from) {
                 const isFile = fs_1.default.statSync(sync.base + '/' + from).isFile();
+                if (sync.syncOnStart) {
+                    this.log(sync, 'Syncing ' + sync.base + '/' + from + ' on start-up');
+                    //If we're syncing on start-up, we can add these to the queue immediately
+                    this.addToQueue(sync.base + '/' + from);
+                }
+                if (sync.buildCacheOnStart) {
+                    //Syncing immediately will build the cache naturally
+                    //But we might want to do this anyway to avoid unnecessary syncing
+                    this.log(sync, 'Building cache for ' + sync.base + '/' + from + ' on start-up');
+                    this.buildCache(sync.base + '/' + from, isFile, sync);
+                }
                 const watcher = fs_1.default.watch(sync.base + '/' + from, { recursive: true }, (_event, file) => __awaiter(this, void 0, void 0, function* () {
                     if (file) {
                         file = file.replace(/\\/g, '/');
@@ -271,11 +282,15 @@ class Kubycat {
                         let error = [];
                         child.stdout.setEncoding('utf8');
                         child.stdout.on('data', (data) => {
-                            output.push(data.toString());
+                            for (const line of data.toString().split(/(\r?\n)/g)) {
+                                output.push(line);
+                            }
                         });
                         child.stderr.setEncoding('utf8');
                         child.stderr.on('data', (data) => {
-                            error.push(data.toString());
+                            for (const line of data.toString().split(/(\r?\n)/g)) {
+                                error.push(line);
+                            }
                         });
                         child.on('exit', (code) => {
                             if (code === 0) {
@@ -380,6 +395,21 @@ class Kubycat {
     log(sync, message) {
         if (sync.showLogs) {
             console.log(message);
+        }
+    }
+    buildCache(path, isFile, sync) {
+        //save the file hash, or recursively build if it's a directory
+        if (isFile) {
+            this.log(sync, ' - caching ' + path);
+            this._fileCache[path] = this.getFileHash(path);
+        }
+        else {
+            const files = fs_1.default.readdirSync(path);
+            for (const file of files) {
+                const filePath = path + '/' + file;
+                const stat = fs_1.default.statSync(filePath);
+                this.buildCache(filePath, stat.isFile(), sync);
+            }
         }
     }
 }

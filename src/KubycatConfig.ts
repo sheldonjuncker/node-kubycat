@@ -97,6 +97,8 @@ class KubycatConfig {
             s.postLocal = sync['post-local'] || null;
             s.postRemote = sync['post-remote'] || null;
             s.showLogs = sync['show-logs'] ?? true;
+            s.syncOnStart = sync['sync-on-start'] ?? false;
+            s.buildCacheOnStart = sync['build-cache-on-start'] ?? false;
             syncs.push(s);
         }
         return new KubycatConfig(config.kubycat.interval ?? 1000, config.kubycat.config, config.kubycat.context, config.kubycat.namespace, syncs);

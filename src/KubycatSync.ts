@@ -21,6 +21,8 @@ class KubycatSync {
     private _postLocal: string|null = null;
     private _postRemote: string|null = null;
     private _showLogs: boolean = true;
+    private _syncOnStart: boolean = false;
+    private _buildCacheOnStart: boolean = false;
 
     constructor(name: string, base: string, from: string[] = [], to: string|null = null) {
         this._name = name;
@@ -35,6 +37,22 @@ class KubycatSync {
 
     set showLogs(value: boolean) {
         this._showLogs = value;
+    }
+
+    get syncOnStart(): boolean {
+        return this._syncOnStart;
+    }
+
+    set syncOnStart(value: boolean) {
+        this._syncOnStart = value;
+    }
+
+    get buildCacheOnStart(): boolean {
+        return this._buildCacheOnStart;
+    }
+
+    set buildCacheOnStart(value: boolean) {
+        this._buildCacheOnStart = value;
     }
 
     get pods(): string[]|null {

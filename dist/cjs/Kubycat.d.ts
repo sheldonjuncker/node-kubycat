@@ -27,5 +27,6 @@ declare class Kubycat {
     private getKubernetesPods;
     private handleError;
     private log;
+    private buildCache;
 }
 export default Kubycat;
