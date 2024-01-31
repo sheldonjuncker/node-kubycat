@@ -65,7 +65,7 @@ $ kubycat ./config.yaml
 ```
 
 ```typescript
-Kubycat version 1.2.4
+Kubycat version 1.2.5
 
 Reading from config file: config.yaml...
 {

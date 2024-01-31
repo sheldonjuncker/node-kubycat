@@ -4,7 +4,7 @@ import KubycatConfig from "./KubycatConfig.js";
 import Kubycat from "./Kubycat.js";
 
 class KubycatCli {
-    static version = '1.2.4';
+    static version = '1.2.5';
 
     public static main(args: string[]): void {
         console.log('Kubycat version ' + this.version + '\n');
